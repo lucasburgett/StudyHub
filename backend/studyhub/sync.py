@@ -7,12 +7,13 @@ import logging
 import sqlite3
 import threading
 import traceback
+from datetime import datetime, timezone
 
 from .config import SOURCES, Settings, get_settings
 from .connectors import SyncContext, get_connector
 from .db import get_meta, now_iso, session, set_meta
 from .ingest.linking import rebuild_lectures
-from .util import title_key
+from .util import parse_dt, title_key
 
 log = logging.getLogger("studyhub.sync")
 _locks = {source: threading.Lock() for source in SOURCES}
@@ -109,6 +110,37 @@ def configured_sources(settings: Settings | None = None) -> list[str]:
 def run_all(sources: list[str] | None = None) -> list[dict]:
     """Canvas first: it defines the courses the other sources attach to."""
     return [run_source(s) for s in (sources or configured_sources())]
+
+
+# How often each source is pulled while the server runs. Gradescope is scraped, so gently.
+INTERVALS = {"canvas": 30 * 60, "gradescope": 12 * 3600, "goodnotes": 10 * 60, "granola": 30 * 60}
+
+
+def due_sources(conn: sqlite3.Connection, settings: Settings) -> list[str]:
+    now = datetime.now(timezone.utc)
+    due = []
+    for source in configured_sources(settings):
+        row = conn.execute("SELECT MAX(started_at) FROM sync_runs WHERE source = ?", (source,)).fetchone()
+        last = parse_dt(row[0]) if row and row[0] else None
+        if not is_running(source) and (last is None or (now - last).total_seconds() >= INTERVALS[source]):
+            due.append(source)
+    return due
+
+
+def auto_sync_forever(stop: threading.Event, check_every: float = 60) -> None:
+    """Background loop for the server: run each configured source when it's due."""
+    while not stop.is_set():
+        settings = get_settings()
+        try:
+            with session(settings.db_path) as conn:
+                due = due_sources(conn, settings)
+            for source in due:
+                if stop.is_set():
+                    break
+                run_source(source, settings)
+        except Exception:
+            log.exception("auto sync failed")
+        stop.wait(check_every)
 
 
 def start_background(sources: list[str]) -> list[str]:

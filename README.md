@@ -38,8 +38,9 @@ For development, run `studyhub serve --reload` in `backend/` and `npm run dev` i
 ## Connecting your accounts
 
 Fill in `backend/.env` (see `backend/.env.example`), then run `studyhub check` to confirm
-each login works and `studyhub sync` to pull everything. The **Sync now** button in the app
-does the same.
+each login works and `studyhub sync` to pull everything. While `studyhub serve` runs it keeps
+syncing on its own (Canvas and Granola every 30 minutes, GoodNotes every 10, Gradescope twice a
+day), and the **Sync now** button pulls immediately.
 
 | Source | What to set up | Notes |
 |---|---|---|

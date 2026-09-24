@@ -33,6 +33,7 @@ class Settings(BaseSettings):
 
     studyhub_timezone: str = "America/Los_Angeles"
     studyhub_data_dir: str = ""
+    studyhub_auto_sync: bool = True
 
     @property
     def data_dir(self) -> Path:

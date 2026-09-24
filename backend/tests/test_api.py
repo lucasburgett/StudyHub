@@ -62,3 +62,16 @@ def test_chat_needs_a_key(client):
 
 def test_sync_rejects_unconfigured_source(client):
     assert client.post("/api/sync", json={"source": "canvas"}).status_code == 400
+
+
+def test_due_sources(conn, monkeypatch):
+    from studyhub import sync
+    from studyhub.config import get_settings
+
+    monkeypatch.setenv("GOODNOTES_DIR", "/tmp/nowhere")
+    monkeypatch.setenv("CANVAS_TOKEN", "x")
+    get_settings.cache_clear()
+    assert sync.due_sources(conn, get_settings()) == ["canvas", "goodnotes"]
+    conn.execute("INSERT INTO sync_runs(source, started_at, status) VALUES ('canvas', ?, 'ok')",
+                 (sync.now_iso(),))
+    assert sync.due_sources(conn, get_settings()) == ["goodnotes"]

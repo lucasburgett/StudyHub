@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+import threading
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
-from typing import Any, Iterator
+from typing import Any, AsyncIterator, Iterator
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
@@ -24,7 +26,18 @@ from .store import file_abspath
 from .util import clock, local_date, monday_of
 
 log = logging.getLogger("studyhub.api")
-app = FastAPI(title="StudyHub", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    stop = threading.Event()
+    if get_settings().studyhub_auto_sync:
+        threading.Thread(target=sync.auto_sync_forever, args=(stop,), daemon=True, name="studyhub-auto-sync").start()
+    yield
+    stop.set()
+
+
+app = FastAPI(title="StudyHub", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
 
 
 def db() -> Iterator[sqlite3.Connection]:
