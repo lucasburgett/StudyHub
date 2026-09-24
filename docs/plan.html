@@ -298,12 +298,26 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
   .ph-num { font-size: 1.6rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* Build status */
+.shot { margin: 0; display: grid; gap: 8px; }
+.shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 18px 40px -28px rgba(20, 30, 50, 0.45); }
+.shot figcaption { font-size: 0.84rem; color: var(--ink-3); }
+.status-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.status-cols .panel ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 0.9rem; color: var(--ink-2); }
+.panel.good { border-top: 3px solid var(--ok); }
+.panel.open { border-top: 3px solid var(--warn); }
+ol.next { margin: 0; padding-left: 2em; display: grid; gap: 8px; max-width: 72ch; color: var(--ink-2); }
+ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
+.pill.muted { color: var(--ink-3); }
+@media (max-width: 720px) { .status-cols { grid-template-columns: 1fr; } }
 </style>
 
 <div class="wrap">
 
 <header class="top">
-  <span class="eyebrow">Build plan · lucasburgett/StudyHub · September 24, 2026</span>
+  <span class="eyebrow">Build plan · lucasburgett/StudyHub · updated September 24, 2026 with what's built</span>
   <h1>StudyHub build plan</h1>
   <p class="lede">One place to browse everything from your classes, plus a Claude agent that can search and read all of it: Canvas, Gradescope, GoodNotes notes, and Granola lecture recordings.</p>
   <div class="meta-row">
@@ -316,6 +330,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
 </header>
 
 <nav class="toc" aria-label="Sections">
+  <a href="#built">What's built</a>
   <a href="#sources">Sources</a>
   <a href="#interface">Interface</a>
   <a href="#rag">Does RAG make sense?</a>
@@ -354,6 +369,73 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     </ul>
   </div>
 </div>
+
+<!-- BUILT -->
+<section class="block" id="built">
+  <header>
+    <span class="eyebrow">What's built · September 24, 2026</span>
+    <h2>Phases 1–3 are built. Nothing has touched your real accounts yet.</h2>
+    <p>The code is on the branch <a href="https://github.com/lucasburgett/StudyHub/tree/claude/class-resources-chat-qcay22" target="_blank" rel="noopener">claude/class-resources-chat-qcay22</a>, and CI passes on it. There's no pull request yet. An agent working locally can pick it up from <a href="https://github.com/lucasburgett/StudyHub/blob/claude/class-resources-chat-qcay22/docs/HANDOFF.md" target="_blank" rel="noopener">docs/HANDOFF.md</a>, and <code>CLAUDE.md</code> points it there automatically.</p>
+  </header>
+
+  <figure class="shot">
+    <img src="app-chat.png" width="1440" height="900" alt="The built StudyHub app: CS 231N lecture timeline in the middle, and a chat answer on the right with citation chips for a slide page, a recording timestamp and an assignment.">
+    <figcaption>The built app running on its example data set. The chat answer here came from a local stand-in for Claude, because no API key was available while building.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Area</th><th>Status</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td><td><span class="pill warn">Untested on real data</span></td><td>REST API with a personal access token: courses, syllabus, modules, files and slides, pages, assignments, announcements.</td></tr>
+        <tr><td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td><td><span class="pill warn">Untested on real data</span></td><td>Scores and due dates through <code>gradescopeapi</code>. Reading per-question feedback is a best guess until it sees a real submission page.</td></tr>
+        <tr><td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td><td><span class="pill warn">Untested on real data</span></td><td>Reads Auto Backup PDFs from a folder. A notes page joins a lecture by the date written at its top.</td></tr>
+        <tr><td><span class="src-name"><span class="dot granola"></span>Granola</span></td><td><span class="pill warn">Untested on real data</span></td><td>Public API, which needs a Business plan. Keeps its own copy of every transcript.</td></tr>
+        <tr><td><strong>Course websites</strong></td><td><span class="pill ok">Built, added</span></td><td>Added because CS 231N posts slides on its own site. Downloads the linked PDFs and public Google Slides, and dates lectures from the schedule table.</td></tr>
+        <tr><td><strong>Lecture timeline</strong></td><td><span class="pill ok">Built</span></td><td>Rebuilt after every sync from, in order: the imported schedule, recording dates, dated note pages, and "Lecture N" files. <code>studyhub schedule</code> imports the schedule from the syllabus, the course site or a CSV.</td></tr>
+        <tr><td><strong>Search</strong></td><td><span class="pill ok">Built</span></td><td>Keyword search (SQLite FTS5), plus optional semantic search (Voyage, or a local model), with the two result lists merged.</td></tr>
+        <tr><td><strong>Chat agent</strong></td><td><span class="pill warn">Real API not called yet</span></td><td>Eight read-only tools, streamed answers, and citation chips the server checks against what the tools actually returned. Uses <code>claude-opus-5</code>.</td></tr>
+        <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Not run yet</span></td><td>Claude vision, one page at a time, sending only new or changed pages.</td></tr>
+        <tr><td><strong>Web app</strong></td><td><span class="pill ok">Built</span></td><td>Timeline, viewer (PDF pages, transcript timestamps, graded feedback), chat, search, sync status, dark mode, phone layout.</td></tr>
+        <tr><td><strong>Setup, auto-sync, CI</strong></td><td><span class="pill ok">Built</span></td><td><code>make setup</code>. Syncs on its own while running. GitHub Actions runs the tests and build on every push.</td></tr>
+        <tr><td><strong>Evals</strong></td><td><span class="pill muted">Not started</span></td><td>Phase 4: about 40 of your real questions, each with the source it should cite.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="status-cols">
+    <div class="panel good">
+      <h3>Verified</h3>
+      <ul>
+        <li>50 backend tests against fake Canvas, Gradescope, Granola and course-site servers</li>
+        <li>The chat loop through the real Anthropic SDK, talking to a local stand-in server</li>
+        <li>The whole app in a headless browser on the example data, including the phone layout and dark mode</li>
+        <li><code>make setup</code> on a clean clone</li>
+        <li>CI on GitHub</li>
+      </ul>
+    </div>
+    <div class="panel open">
+      <h3>Not verified yet</h3>
+      <ul>
+        <li>Any real account. The build sandbox's network blocked <code>canvas.stanford.edu</code> and the other sources</li>
+        <li>A real Claude API call</li>
+        <li>Gradescope's submission page format, and Granola's paged-transcript endpoint</li>
+        <li>How well handwriting gets transcribed, and embeddings from a real model</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="stack">
+    <h3>Next, in order</h3>
+    <ol class="next">
+      <li>On your Mac: <code>make setup</code>, fill in <code>backend/.env</code>, then <code>make check</code>. Make a fresh Canvas token with an expiry date, and revoke the one shared in chat.</li>
+      <li>Sync Canvas and fix whatever real data breaks: how course codes are read, lecture numbering, courses with the Files tab hidden.</li>
+      <li>Make the first real chat call (<code>studyhub ask "What's due this week?"</code>) and fix anything the API rejects.</li>
+      <li>Gradescope feedback, your Granola plan, the GoodNotes backup folder, and this term's course site.</li>
+      <li>Evals built from your real questions, then use them to tune search and prompts.</li>
+    </ol>
+  </div>
+</section>
 
 <!-- SOURCES -->
 <section class="block" id="sources">
@@ -397,6 +479,14 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
           <td>Lecture notes, AI summary, full transcript, folder</td>
           <td>On the free Basic plan, MCP only sees the last 30 days and can't pull raw transcripts. StudyHub has to keep its own copy either way.</td>
           <td><span class="pill ok">Connected</span> <span class="pill warn">0 lectures</span></td>
+        </tr>
+        <tr>
+          <td><span class="src-name">Course websites</span></td>
+          <td>Read the course's schedule page and the slide PDFs it links</td>
+          <td>None (public pages)</td>
+          <td>Slides, schedule, lecture dates</td>
+          <td>Added while building: CS 231N posts slides on its own site, not Canvas. Private Google Slides are kept as links only.</td>
+          <td><span class="pill ok">Added</span></td>
         </tr>
       </tbody>
     </table>
@@ -631,7 +721,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
         <li>Courses, lectures, assignments</li>
         <li>Documents as Markdown</li>
         <li>FTS5 keyword index</li>
-        <li>sqlite-vec vectors</li>
+        <li>Embedding vectors</li>
         <li>Raw files on disk</li>
       </ul>
     </div>
@@ -650,7 +740,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
       <h3>Web app</h3>
       <ul>
         <li>Course timelines</li>
-        <li>Viewer (pdf.js)</li>
+        <li>Viewer (PDF, transcript)</li>
         <li>Chat panel</li>
         <li>Sync status</li>
       </ul>
@@ -665,9 +755,9 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
       <h3>Stack</h3>
       <ul class="plain">
         <li><strong>Backend: Python with FastAPI.</strong> The Gradescope client, the Canvas client, PDF tools (PyMuPDF), and the Anthropic SDK are all strongest in Python.</li>
-        <li><strong>Frontend: React and TypeScript on Vite</strong>, pdf.js for the viewer, server-sent events for streaming answers.</li>
-        <li><strong>Storage: one SQLite file</strong> with FTS5 and sqlite-vec, and raw files on disk named by content hash. Moves to Postgres with pgvector later only if you host it.</li>
-        <li><strong>Scheduler:</strong> APScheduler inside the backend, or launchd on your Mac.</li>
+        <li><strong>Frontend: React and TypeScript on Vite</strong>, the browser's own PDF viewer, server-sent events for streaming answers.</li>
+        <li><strong>Storage: one SQLite file</strong> with FTS5 and embedding vectors, and raw files on disk named by content hash. Moves to Postgres with pgvector later only if you host it.</li>
+        <li><strong>Scheduler:</strong> a background thread in the server: Canvas and Granola every 30 minutes, GoodNotes every 10, Gradescope twice a day, course sites every 6 hours.</li>
       </ul>
     </div>
     <div class="stack">
@@ -749,7 +839,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <table>
       <thead><tr><th>Tool</th><th>What it returns</th><th>Backed by</th></tr></thead>
       <tbody>
-        <tr><td><code>search</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">query, course?, sources?, date range?</span></td><td>Ranked snippets with locators and lecture links</td><td>FTS5 + sqlite-vec</td></tr>
+        <tr><td><code>search</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">query, course?, sources?, date range?</span></td><td>Ranked snippets with locators and lecture links</td><td>FTS5 + vectors</td></tr>
         <tr><td><code>read</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">resource_id, pages? / time range?</span></td><td>The full text of a transcript, deck, note, or spec, or a slice of it</td><td>Markdown store</td></tr>
         <tr><td><code>get_lecture</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course, number or date</span></td><td>Transcript, slides, and your notes for one lecture in one call</td><td>SQL + store</td></tr>
         <tr><td><code>list_assignments</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course?, status?, due_before?</span></td><td>Deadlines, status, scores</td><td>SQL</td></tr>
@@ -799,12 +889,13 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
                occurred_at, content_hash, raw_path, markdown, synced_at
                <i>source: canvas | gradescope | goodnotes | granola</i>
                <i>kind:   slides | file | page | spec | notes | transcript | submission | announcement</i>
-<b>chunks</b>         id, resource_id, locator, header, text        <i>+ chunks_fts (FTS5), chunks_vec (sqlite-vec)</i>
+<b>chunks</b>         id, resource_id, locator, header, text        <i>+ chunks_fts (FTS5), embedding</i>
 <b>assignments</b>    id, course_id, source, external_id, title, due_at, points, status, score, url
 <b>feedback</b>       id, assignment_id, question, points_lost, rubric_items, comment, page
 <b>sync_runs</b>      id, source, started_at, finished_at, status, items_changed, error
 <b>threads</b>        id, scope, title, created_at
-<b>messages</b>       id, thread_id, role, content_json, citations_json, created_at</pre>
+<b>messages</b>       id, thread_id, role, text, api_json, tools_json, citations_json, created_at
+<b>schedule</b>       course_id, number, date, title   <i>imported lecture plan; anchors lecture numbers and dates</i></pre>
 </section>
 
 <!-- COST -->
@@ -841,7 +932,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <li class="now">
       <span class="ph-num">0</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Access and capture</h3><span class="pill accent">This week</span></div>
+        <div class="ph-h"><h3>Access and capture</h3><span class="pill accent">Your turn</span></div>
         <p>Start recording lectures in Granola, turn on GoodNotes Auto Backup, and get a Canvas token and a Gradescope password. Then write <code>scripts/check_access.py</code>, which logs in to each source and prints what it sees. Material that isn't captured now can't be recovered later, so this phase matters most.</p>
         <p class="done-when"><b>Done when</b>the script lists your courses from Canvas and Gradescope, a notebook PDF from Drive, and a recorded lecture from Granola.</p>
       </div>
@@ -849,7 +940,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <li>
       <span class="ph-num">1</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Sync and browse</h3></div>
+        <div class="ph-h"><h3>Sync and browse</h3><span class="pill ok">Built</span></div>
         <p>Build the four connectors, the SQLite schema, the raw file store, and the web app's course timeline, assignments tab, viewer, and sync status.</p>
         <p class="done-when"><b>Done when</b>everything in CS 231N shows up in the browser within an hour of appearing upstream.</p>
       </div>
@@ -857,7 +948,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <li>
       <span class="ph-num">2</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Normalize and index</h3></div>
+        <div class="ph-h"><h3>Normalize and index</h3><span class="pill ok">Built</span></div>
         <p>Add PDF text extraction, handwriting transcription, transcript windows, lecture matching, lecture summaries, and the FTS5 and vector indexes. Search in the top bar works without the agent.</p>
         <p class="done-when"><b>Done when</b>searching for a term you only wrote by hand finds the right notes page.</p>
       </div>
@@ -865,7 +956,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <li>
       <span class="ph-num">3</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Agent chat</h3></div>
+        <div class="ph-h"><h3>Agent chat</h3><span class="pill ok">Built</span></div>
         <p>Add the tools, the course-map prompt with caching, streaming, citation chips that open the viewer, saved threads, and the scope switch.</p>
         <p class="done-when"><b>Done when</b>30 real questions from your classes get correct answers with working citations.</p>
       </div>
@@ -873,7 +964,7 @@ footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid
     <li>
       <span class="ph-num">4</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Study features and evals</h3></div>
+        <div class="ph-h"><h3>Study features and evals</h3><span class="pill warn">Quick actions built; evals not started</span></div>
         <p>Add the quick actions (catch me up, quiz me, explain my deductions, midterm review). Keep an eval set of about 40 of your real questions with the sources that should be cited, and rerun it whenever retrieval or prompts change. Optionally, expose the same tools as an MCP server so Claude Code and the Claude apps can use StudyHub too.</p>
         <p class="done-when"><b>Done when</b>eval scores are tracked and retrieval misses are rare enough that you stop noticing them.</p>
       </div>
