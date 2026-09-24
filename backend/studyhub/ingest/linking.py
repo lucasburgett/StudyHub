@@ -3,6 +3,7 @@
 Lectures are derived data, rebuilt from scratch after every sync so the result never
 depends on sync order. Signals, strongest first:
 
+0. The imported course schedule (lecture number, date, title), if there is one.
 1. A Granola recording happened on a date -> there was a lecture that day.
 2. A GoodNotes page has a date written near its top -> that page belongs to that day's lecture.
 3. A Canvas file or module says "Lecture N" -> it belongs to lecture N. If a dated lecture
@@ -70,6 +71,14 @@ def rebuild_lectures(conn: sqlite3.Connection, course_id: int) -> int:
             lectures.append(lec)
             by_date[day] = lec
         return by_date[day]
+
+    # 0. The course schedule, when imported, fixes numbers, dates and titles up front.
+    for row in conn.execute("SELECT number, date, title FROM schedule WHERE course_id = ? ORDER BY number", (course_id,)):
+        lec = at_date(row["date"]) if row["date"] else _Lecture()
+        if not row["date"]:
+            lectures.append(lec)
+        lec.number, lec.title = row["number"], row["title"]
+        by_number[row["number"]] = lec
 
     # 1. Recordings anchor lecture days.
     for r in conn.execute(

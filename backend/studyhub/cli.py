@@ -1,4 +1,4 @@
-"""Command line: `studyhub check | sync | serve | demo | ask | transcribe`."""
+"""Command line: `studyhub check | sync | serve | demo | ask | schedule | transcribe`."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import argparse
 import logging
 import shutil
 import sys
+from pathlib import Path
 
 from .config import BACKEND_DIR, SOURCES, get_settings
 from .db import session
@@ -115,6 +116,36 @@ def cmd_transcribe(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_schedule(args: argparse.Namespace) -> int:
+    from .ingest import schedule
+    from .store import find_course
+
+    with session() as conn:
+        course_id = find_course(conn, args.course)
+        if course_id is None:
+            print(f"No course matches {args.course!r}. Sync first, or check the code.")
+            return 1
+        if not args.show:
+            if args.csv:
+                rows = schedule.read_csv(args.csv)
+            else:
+                if not get_settings().agent_ready:
+                    print("Reading a schedule needs ANTHROPIC_API_KEY in backend/.env (or use --csv).")
+                    return 1
+                material = schedule.fetch_page(args.url) if args.url else schedule.course_material(conn, course_id)
+                if not material.strip():
+                    print("No syllabus or pages synced for this course. Pass --url (the course website) or --csv.")
+                    return 1
+                rows = schedule.extract_schedule(conn, course_id, material)
+            if not rows:
+                print("No lecture schedule found.")
+                return 1
+            schedule.save_schedule(conn, course_id, rows)
+        for r in conn.execute("SELECT * FROM schedule WHERE course_id = ? ORDER BY number", (course_id,)):
+            print(f"  L{r['number']:<3} {r['date'] or 'no date':<11} {r['title'] or ''}")
+    return 0
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     env = BACKEND_DIR / ".env"
     if not env.exists():
@@ -154,6 +185,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--course", help="course code to focus on, e.g. 'CS 231N'")
     p.add_argument("--effort", default="medium", choices=["low", "medium", "high", "xhigh", "max"])
     p.set_defaults(fn=cmd_ask)
+
+    p = sub.add_parser("schedule", help="import a course's lecture schedule (numbers, dates, topics)")
+    p.add_argument("course", help="course code, e.g. 'CS 231N'")
+    src = p.add_mutually_exclusive_group()
+    src.add_argument("--url", help="read the schedule from the course website instead of the synced syllabus")
+    src.add_argument("--csv", type=Path, help="a CSV of number,date,title")
+    src.add_argument("--show", action="store_true", help="print the imported schedule")
+    p.set_defaults(fn=cmd_schedule)
 
     p = sub.add_parser("transcribe", help="transcribe handwritten note pages with Claude vision")
     p.add_argument("--course", help="only this course")

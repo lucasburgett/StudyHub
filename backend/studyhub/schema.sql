@@ -30,6 +30,15 @@ CREATE TABLE IF NOT EXISTS lectures (
   UNIQUE (course_id, date)
 );
 
+-- The course's lecture plan, from the syllabus or a CSV. Anchors lecture numbers and dates.
+CREATE TABLE IF NOT EXISTS schedule (
+  course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  number    INTEGER NOT NULL,
+  date      TEXT,
+  title     TEXT,
+  PRIMARY KEY (course_id, number)
+);
+
 CREATE TABLE IF NOT EXISTS resources (
   id           INTEGER PRIMARY KEY,
   course_id    INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,

@@ -62,6 +62,7 @@ Run from `backend/` (or put `backend/.venv/bin` on your `PATH`):
 | `studyhub sync [canvas gradescope goodnotes granola]` | Pull new and changed material (all configured sources by default) |
 | `studyhub serve [--port 8000] [--reload]` | Run the API and the web app |
 | `studyhub ask "question" [--course "CS 231N"]` | Ask the agent from the terminal |
+| `studyhub schedule "CS 231N" [--url … \| --csv … \| --show]` | Import the lecture schedule (from the synced syllabus, the course website, or a `number,date,title` CSV) so every lecture has a number, date and topic, recorded or not |
 | `studyhub transcribe [--course …] [--limit 50] [--dry-run]` | Transcribe handwritten note pages (math as LaTeX) with Claude vision; only new or changed pages are sent |
 | `studyhub demo [--force]` | Load the example data set |
 
@@ -83,8 +84,8 @@ Canvas / Gradescope / GoodNotes PDFs / Granola
   web app (web/): course timelines, a viewer, and the chat panel
 ```
 
-- **Lectures are rebuilt after every sync.** A Granola recording on a date marks a lecture
-  that day; dated pages in your notes attach to it; Canvas files named "Lecture 3" (or in a
+- **Lectures are rebuilt after every sync.** An imported schedule comes first. Then a Granola
+  recording on a date marks a lecture that day; dated pages in your notes attach to it; Canvas files named "Lecture 3" (or in a
   "Lecture 3" module) become lecture 3 and join the recorded lecture right after their upload.
 - **Citations are locators** such as `r42@41:12` (resource 42 at 41:12) or `r17#p27` (page 27).
   Tools print them next to everything they return, the agent cites them as `[[r42@41:12]]`,
@@ -106,7 +107,6 @@ against a scripted model and against the real SDK talking to a local stand-in se
 ## Not built yet
 
 - Vector embeddings next to keyword search (the plan's Phase 2); search is BM25 over FTS5 today.
-- Lecture schedule import from the syllabus, so lectures you missed still get a number and date.
 - Granola without a Business plan (its MCP server, which needs an OAuth flow).
 - Graded-submission PDFs from Gradescope.
 - An eval set of your real questions (Phase 4).
