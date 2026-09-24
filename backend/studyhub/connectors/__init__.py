@@ -18,6 +18,9 @@ def get_connector(source: str) -> Connector:
     if source == "granola":
         from .granola import GranolaConnector
         return GranolaConnector()
+    if source == "web":
+        from .web import WebConnector
+        return WebConnector()
     raise ValueError(f"unknown source: {source}")
 
 

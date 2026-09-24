@@ -1,12 +1,13 @@
 import type { AssignmentStatus, Kind, LectureGap, ResourceSummary, Source } from '../api/types'
 
-export const SOURCES: Source[] = ['canvas', 'gradescope', 'goodnotes', 'granola']
+export const SOURCES: Source[] = ['canvas', 'gradescope', 'goodnotes', 'granola', 'web']
 
 export const SOURCE_NAMES: Record<Source, string> = {
   canvas: 'Canvas',
   gradescope: 'Gradescope',
   goodnotes: 'GoodNotes',
   granola: 'Granola',
+  web: 'Course sites',
 }
 
 export const KIND_NAMES: Record<Kind, string> = {

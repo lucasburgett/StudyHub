@@ -12,7 +12,7 @@ def client(demo):
 def test_status_and_courses(client):
     status = client.get("/api/status").json()
     assert status["demo"] is True and status["agent_ready"] is False
-    assert [s["source"] for s in status["sources"]] == ["canvas", "gradescope", "goodnotes", "granola"]
+    assert [s["source"] for s in status["sources"]] == ["canvas", "gradescope", "goodnotes", "granola", "web"]
     courses = client.get("/api/courses").json()
     assert courses[0]["code"] == "CS 231N"
     assert courses[0]["counts"]["assignments"] == 3

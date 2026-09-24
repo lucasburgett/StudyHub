@@ -6,7 +6,8 @@ depends on sync order. Signals, strongest first:
 0. The imported course schedule (lecture number, date, title), if there is one.
 1. A Granola recording happened on a date -> there was a lecture that day.
 2. A GoodNotes page has a date written near its top -> that page belongs to that day's lecture.
-3. A Canvas file or module says "Lecture N" -> it belongs to lecture N. If a dated lecture
+3. A Canvas file, module or course-site row says "Lecture N" -> it belongs to lecture N (a
+   course-site row also gives the lecture's date). If a dated lecture
    without a number sits just after the file's upload date, they're the same lecture.
 """
 
@@ -112,7 +113,7 @@ def rebuild_lectures(conn: sqlite3.Connection, course_id: int) -> int:
             if current is not None:
                 current.chunks.add(c["id"])
 
-    # 3. Numbered Canvas items.
+    # 3. Numbered Canvas and course-site items. A course site's schedule row also gives the date.
     numbered = []
     for r in conn.execute(
         f"SELECT id, title, occurred_at, meta_json FROM resources WHERE course_id = ? AND kind IN "
@@ -125,17 +126,23 @@ def rebuild_lectures(conn: sqlite3.Connection, course_id: int) -> int:
             continue
         hint = local_date(r["occurred_at"], tz)
         title = clean_lecture_title(r["title"]) or clean_lecture_title(meta.get("module"))
-        numbered.append((n, hint, title, r["id"]))
+        numbered.append((n, hint, meta.get("lecture_date"), title, r["id"]))
 
-    for n, hint, title, rid in sorted(numbered, key=lambda x: (x[0], x[1] or "")):
+    for n, hint, lecture_date, title, rid in sorted(numbered, key=lambda x: (x[0], x[1] or "")):
         lec = by_number.get(n)
-        if lec is None and hint:
+        if lec is None and lecture_date and lecture_date in by_date and by_date[lecture_date].number is None:
+            lec = by_date[lecture_date]
+            lec.number = n
+        if lec is None and hint and not lecture_date:
             lec = _nearest_unnumbered(lectures, hint)
             if lec is not None:
                 lec.number = n
         if lec is None:
             lec = _Lecture(number=n)
             lectures.append(lec)
+        if lec.date is None and lecture_date and lecture_date not in by_date:
+            lec.date = lecture_date
+            by_date[lecture_date] = lec
         by_number[n] = lec
         lec.resources.add(rid)
         if title and not lec.title:

@@ -8,8 +8,8 @@ import pytest
 from studyhub import config
 from studyhub.db import connect, init_db
 
-SOURCE_VARS = ("CANVAS_BASE_URL", "CANVAS_TOKEN", "GRADESCOPE_EMAIL", "GRADESCOPE_PASSWORD", "GOODNOTES_DIR", "GRANOLA_API_KEY",
-               "ANTHROPIC_API_KEY")
+SOURCE_VARS = ("CANVAS_BASE_URL", "CANVAS_TOKEN", "GRADESCOPE_EMAIL", "GRADESCOPE_PASSWORD", "GOODNOTES_DIR",
+               "GRANOLA_API_KEY", "COURSE_SITES", "ANTHROPIC_API_KEY")
 
 
 @pytest.fixture(autouse=True)

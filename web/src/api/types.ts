@@ -1,6 +1,6 @@
 // Types mirroring docs/API.md. Timestamps are ISO 8601 UTC strings; plain dates are YYYY-MM-DD.
 
-export type Source = 'canvas' | 'gradescope' | 'goodnotes' | 'granola'
+export type Source = 'canvas' | 'gradescope' | 'goodnotes' | 'granola' | 'web'
 
 export type Kind = 'slides' | 'file' | 'page' | 'spec' | 'notes' | 'transcript' | 'submission' | 'announcement'
 

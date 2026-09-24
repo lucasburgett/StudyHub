@@ -10,7 +10,7 @@ without a time are `YYYY-MM-DD`. IDs are integers unless noted.
 ## Shared types
 
 ```ts
-type Source = "canvas" | "gradescope" | "goodnotes" | "granola";
+type Source = "canvas" | "gradescope" | "goodnotes" | "granola" | "web"; // web = course websites
 
 type Kind =
   | "slides"        // lecture slide deck (PDF)

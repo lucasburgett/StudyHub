@@ -18,6 +18,7 @@
   --gradescope: #13806f;
   --goodnotes: #6b50c8;
   --granola: #a5680f;
+  --web: #3b6f8f;
   --ok: #2e7a3a;
   --warn: #9a620c;
   --bad: #b3261e;
@@ -53,6 +54,7 @@
     --gradescope: #4fc6b1;
     --goodnotes: #ad98f6;
     --granola: #e2aa4c;
+    --web: #7fb4d6;
     --ok: #74c983;
     --warn: #e2aa4c;
     --bad: #f28b82;
@@ -81,6 +83,7 @@
   --gradescope: #4fc6b1;
   --goodnotes: #ad98f6;
   --granola: #e2aa4c;
+  --web: #7fb4d6;
   --ok: #74c983;
   --warn: #e2aa4c;
   --bad: #f28b82;
@@ -358,6 +361,10 @@ mark {
 
 .dot.granola {
   --c: var(--granola);
+}
+
+.dot.web {
+  --c: var(--web);
 }
 
 /* Pills and chips */

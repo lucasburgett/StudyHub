@@ -40,7 +40,7 @@ For development, run `studyhub serve --reload` in `backend/` and `npm run dev` i
 Fill in `backend/.env` (see `backend/.env.example`), then run `studyhub check` to confirm
 each login works and `studyhub sync` to pull everything. While `studyhub serve` runs it keeps
 syncing on its own (Canvas and Granola every 30 minutes, GoodNotes every 10, Gradescope twice a
-day), and the **Sync now** button pulls immediately.
+day, course websites every 6 hours), and the **Sync now** button pulls immediately.
 
 | Source | What to set up | Notes |
 |---|---|---|
@@ -48,6 +48,7 @@ day), and the **Sync now** button pulls immediately.
 | **Canvas** | `CANVAS_TOKEN` from Canvas → Account → Settings → **+ New access token**. Give it an expiry date. | A token can do anything your account can, so keep `.env` private. StudyHub only reads. |
 | **Gradescope** | `GRADESCOPE_EMAIL` and `GRADESCOPE_PASSWORD` | No official API; this uses the unofficial `gradescopeapi` client. With Stanford SSO, set a Gradescope password first via **Forgot password**. Per-question feedback is read best-effort; totals always sync. |
 | **GoodNotes** | Turn on **Settings → Automatic Backup**, choose Google Drive and **PDF**. Set `GOODNOTES_DIR` to the local copy of that folder (Google Drive for Desktop). | Keep one GoodNotes folder per class named after the course code, e.g. `CS 231N`. Write the date (`9/24`) at the top of each day's first page: that's how pages get matched to lectures. |
+| **Course websites** | `COURSE_SITES=CS 231N=https://cs231n.stanford.edu/schedule.html` (semicolon-separated) | For courses that post slides on their own site. StudyHub reads the page, downloads the slide PDFs it links (and public Google Slides), and uses each schedule row's "Lecture N" and date to place them. |
 | **Granola** | `GRANOLA_API_KEY` from Granola → Settings → Connectors → API keys | The API needs a Granola Business plan. Record each lecture into a folder named after the course code. StudyHub keeps its own copy of transcripts, so Granola's auto-deletion can't take them away. |
 
 Courses are matched across sources by course code (`CS 231N`, `cs231n` and `CS-231N` all
@@ -60,7 +61,7 @@ Run from `backend/` (or put `backend/.venv/bin` on your `PATH`):
 | Command | What it does |
 |---|---|
 | `studyhub check` | Log in to each configured source and report what it can see |
-| `studyhub sync [canvas gradescope goodnotes granola]` | Pull new and changed material (all configured sources by default) |
+| `studyhub sync [canvas gradescope goodnotes granola web]` | Pull new and changed material (all configured sources by default) |
 | `studyhub serve [--port 8000] [--reload]` | Run the API and the web app |
 | `studyhub ask "question" [--course "CS 231N"]` | Ask the agent from the terminal |
 | `studyhub schedule "CS 231N" [--url … \| --csv … \| --show]` | Import the lecture schedule (from the synced syllabus, the course website, or a `number,date,title` CSV) so every lecture has a number, date and topic, recorded or not |
@@ -70,7 +71,7 @@ Run from `backend/` (or put `backend/.venv/bin` on your `PATH`):
 ## How it works
 
 ```
-Canvas / Gradescope / GoodNotes PDFs / Granola
+Canvas / Gradescope / GoodNotes PDFs / Granola / course websites
         │  connectors (backend/studyhub/connectors)
         ▼
   normalize: PDF text per page, transcript windows with timestamps, HTML → Markdown

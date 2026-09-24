@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -31,6 +32,8 @@ class Settings(BaseSettings):
 
     granola_api_key: str = ""
 
+    course_sites: str = ""
+
     studyhub_timezone: str = "America/Los_Angeles"
     studyhub_data_dir: str = ""
     studyhub_auto_sync: bool = True
@@ -52,12 +55,23 @@ class Settings(BaseSettings):
     def model(self) -> str:
         return self.studyhub_model
 
+    @property
+    def sites(self) -> list[tuple[str, str]]:
+        """COURSE_SITES="CS 231N=https://…/schedule.html; MATH 51=https://…" -> [(code, url), …]"""
+        pairs = []
+        for part in re.split(r"[;\n]", self.course_sites):
+            code, sep, url = part.partition("=")
+            if sep and code.strip() and url.strip().startswith(("http://", "https://")):
+                pairs.append((code.strip(), url.strip()))
+        return pairs
+
     def configured(self, source: str) -> bool:
         return {
             "canvas": bool(self.canvas_token),
             "gradescope": bool(self.gradescope_email and self.gradescope_password),
             "goodnotes": bool(self.goodnotes_dir),
             "granola": bool(self.granola_api_key),
+            "web": bool(self.sites),
         }[source]
 
     @property
@@ -69,7 +83,7 @@ class Settings(BaseSettings):
         )
 
 
-SOURCES = ("canvas", "gradescope", "goodnotes", "granola")
+SOURCES = ("canvas", "gradescope", "goodnotes", "granola", "web")
 
 
 @lru_cache

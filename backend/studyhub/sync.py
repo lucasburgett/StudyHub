@@ -113,7 +113,8 @@ def run_all(sources: list[str] | None = None) -> list[dict]:
 
 
 # How often each source is pulled while the server runs. Gradescope is scraped, so gently.
-INTERVALS = {"canvas": 30 * 60, "gradescope": 12 * 3600, "goodnotes": 10 * 60, "granola": 30 * 60}
+INTERVALS = {"canvas": 30 * 60, "gradescope": 12 * 3600, "goodnotes": 10 * 60, "granola": 30 * 60,
+             "web": 6 * 3600}
 
 
 def due_sources(conn: sqlite3.Connection, settings: Settings) -> list[str]:
