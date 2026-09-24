@@ -2278,3 +2278,7 @@ tr.clickable:hover td {
   display: grid;
   gap: 4px;
 }
+
+.md.md-plain {
+  white-space: pre-wrap;
+}

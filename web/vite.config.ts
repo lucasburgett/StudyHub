@@ -12,7 +12,5 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    // One bundle is fine for a local app; KaTeX and the markdown pipeline make up most of it.
-    chunkSizeWarningLimit: 1000,
   },
 })

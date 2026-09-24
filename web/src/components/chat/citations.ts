@@ -1,5 +1,5 @@
 import type { Citations } from '../../api/types'
-import { CITE_PROTOCOL } from '../Markdown'
+import { CITE_PROTOCOL } from '../../lib/cite'
 
 // [[locator]] markers, with the spaces before them so dropped markers leave no gap.
 const MARKER = /([ \t]*)\[\[([^[\]\n]+?)\]\]/g

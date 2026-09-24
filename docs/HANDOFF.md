@@ -132,7 +132,6 @@ emails, grades or tokens), and run `make test`.
 5. **Ed Discussion** (Stanford CS courses use it heavily). It has user API tokens; good
    candidate for a sixth source. Ask first.
 6. **Smaller:**
-   - Lazy-load KaTeX (the JS bundle is about 700 kB).
    - pdf.js instead of an `<iframe>` for PDFs.
    - Restore scroll position when going back.
    - `strftime("%-d")` is Unix-only (fine on macOS).
