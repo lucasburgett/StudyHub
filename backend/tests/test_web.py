@@ -16,7 +16,9 @@ PAGE = """
   [<a href="slides/2026/lecture_1_part_1.pdf">slides 1</a>] [<a href="slides/2026/lecture_1_part_2.pdf">slides 2</a>]</td><td></td></tr>
 <tr><td>Sep 24</td><td><b>Lecture 2: Image Classification with Linear Classifiers</b><br>The data-driven approach
   [<a href="slides/2026/lecture_2.pdf">slides</a>]</td><td><a href="notes/linear.html">Linear classification</a></td></tr>
-<tr><td>Sep 25</td><td>Python / Numpy Review Session [<a href="https://docs.google.com/presentation/d/abc123/edit">slides</a>]</td></tr>
+<tr><td>Sep 25</td><td>Python / Numpy Review Session<br>[<a href="https://colab.example.com/numpy.ipynb">Colab</a>]
+            [<a href="https://docs.google.com/presentation/d/abc123/edit">slides</a>]
+  <td>12:30-1:20pm PT</td></td></tr>
 <tr><td>Sep 29</td><td><b>Lecture 3: Regularization and Optimization</b> [<a href="https://docs.google.com/presentation/d/private9/edit">slides</a>]</td></tr>
 </table>
 <p><a href="https://example.org/syllabus.pdf">Syllabus (PDF)</a></p>
@@ -59,6 +61,7 @@ def test_parse_links():
     assert (l2.number, l2.title) == (2, "Lecture 2: Image Classification with Linear Classifiers")
     review = by_url["https://docs.google.com/presentation/d/abc123/export/pdf"]
     assert review.number is None and review.page_url.endswith("/abc123/edit")
+    assert (review.title, review.day.isoformat()) == ("Python / Numpy Review Session", "2026-09-25")
     assert "https://cs231n.example.edu/notes/linear.html" not in by_url  # not a document
 
 

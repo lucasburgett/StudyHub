@@ -55,6 +55,13 @@ def _row_title(row: Tag, context: str) -> str | None:
     return rest[:90].rstrip()
 
 
+def _cell_name(a: Tag) -> str | None:
+    """A non-lecture row's name ("Backprop Review Session"): its cell's text before the first [link]."""
+    cell = a.find_parent(["td", "li"]) or a.parent or a
+    name = " ".join(cell.get_text(" ", strip=True).split("[", 1)[0].split())
+    return name[:90].rstrip() or None
+
+
 def parse_links(html: str, base_url: str, year: int) -> list[SiteLink]:
     soup = BeautifulSoup(html, "html.parser")
     links: list[SiteLink] = []
@@ -81,8 +88,8 @@ def parse_links(html: str, base_url: str, year: int) -> list[SiteLink]:
             title = base_title if label.lower() in ("slides", "slide", "pdf", "") else f"{base_title} ({label})"
         else:
             title = link_text.strip("[] ") or urlparse(href).path.rsplit("/", 1)[-1]
-            if title.lower() in ("slides", "pdf"):
-                title = f"{context[:60]} ({title})"
+            if title.lower() in ("slides", "slide", "pdf"):
+                title = _cell_name(a) or f"{' '.join(context.split())[:60]} ({title})"
         links.append(SiteLink(url=download, page_url=href, title=title, number=number,
                               day=find_date(context, year)))
         if len(links) >= MAX_LINKS:
