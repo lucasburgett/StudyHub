@@ -73,6 +73,7 @@ Run as `backend/.venv/bin/studyhub …` (or put `backend/.venv/bin` on your `PAT
 | `studyhub ask "question" [--course "CS 231N"]` | Ask the agent from the terminal |
 | `studyhub schedule "CS 231N" [--url … \| --csv … \| --show]` | Import the lecture schedule (from the synced syllabus, the course website, or a `number,date,title` CSV) so every lecture has a number, date and topic, recorded or not |
 | `studyhub index [--rebuild]` | Build the semantic search index (it also updates after every sync) |
+| `studyhub eval CASES.json [--reps 3]` | Ask a set of questions and check each answer's citations and content (see Evals below) |
 | `studyhub transcribe [--course …] [--limit 50] [--dry-run]` | Transcribe handwritten note pages (math as LaTeX) with Claude vision; only new or changed pages are sent |
 | `studyhub demo [--force]` | Load the example data set |
 
@@ -110,6 +111,23 @@ Canvas / Gradescope / GoodNotes PDFs / Granola / course websites
   read your courses, change your settings or spend your API credits.
 - **The agent can't change anything.** No tool writes, posts or submits, so instructions hidden
   in course content have nothing to trigger.
+
+## Evals
+
+To know whether a change to search or prompts actually helps, keep a set of real questions with
+the source a good answer should cite, and run it before and after:
+
+```bash
+backend/.venv/bin/studyhub eval backend/evals/demo.json          # the example set, on `studyhub demo` data
+backend/.venv/bin/studyhub eval data/evals/mine.json --reps 3    # your own; data/ isn't committed
+```
+
+A case names the sources the way you'd recognize them (`{"title": "CS 231N Lecture 3", "at":
+"47:30"}`, `{"assignment": "Quiz 1", "question": 2}`), plus words the answer must or must not
+contain and tools it should use; `backend/evals/demo.json` shows every option. Runs use a copy
+of the database, say how many paid questions they'll ask before starting, and write
+`results.jsonl`, `errors.jsonl` (API failures, never scored), full transcripts and `summary.json`
+(pass rate with a 95% interval) under `data/evals/runs/`.
 
 ## Tests
 

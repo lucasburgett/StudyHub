@@ -1,4 +1,4 @@
-"""Command line: `studyhub check | sync | serve | demo | ask | schedule | index | transcribe`."""
+"""Command line: `studyhub check | sync | serve | demo | ask | schedule | index | eval | transcribe`."""
 
 from __future__ import annotations
 
@@ -161,6 +161,52 @@ def cmd_schedule(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_eval(args: argparse.Namespace) -> int:
+    from datetime import datetime
+
+    from .evals import CaseError, load_cases, run_eval
+
+    settings = get_settings()
+    if not settings.agent_ready:
+        print("Evals call Claude: add an API key in Settings or backend/.env first.")
+        return 1
+    with session() as conn:
+        try:
+            cases = load_cases(conn, args.cases)
+        except CaseError as e:
+            print(f"Problem in {args.cases}: {e}")
+            return 2
+    if args.case:
+        cases = [c for c in cases if c.id in args.case]
+    n = len(cases) * args.reps
+    print(f"{n} questions to ask ({len(cases)} cases × {args.reps} reps) with {settings.model}, effort {args.effort}.")
+    print("Each takes a few Claude requests; expect very roughly $0.05–0.40 per question at list prices.")
+    if not args.yes and input("Run them? [y/N] ").strip().lower() not in ("y", "yes"):
+        return 1
+    out = args.out or settings.data_dir / "evals" / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    def on_row(row: dict | None, err: dict | None) -> None:
+        if err:
+            print(f"  ! {err['case_id']} #{err['rep']}: {err['kind']}: {err['message']}")
+            return
+        failed = [k for k, ok in row["grades"].items() if not ok]
+        mark = "✓" if row["pass"] else "✗"
+        detail = f" [{row['status']}]" if row["status"] != "ok" else (f" (failed: {', '.join(failed)})" if failed else "")
+        print(f"  {mark} {row['case_id']} #{row['rep']}{detail}  {row['seconds']} s")
+
+    summary = run_eval(args.cases, out, reps=args.reps, effort=args.effort,
+                       only=[c.id for c in cases], timeout_s=args.timeout, on_row=on_row)
+    low, high = summary["pass_rate_95ci"]
+    rate = summary["pass_rate"]
+    print(f"\nPassed {summary['passed']} of {summary['scored']} scored"
+          + (f" ({rate:.0%}, 95% CI {low:.0%}–{high:.0%})" if rate is not None else "")
+          + (f"; {summary['errors']} errors not scored" if summary["errors"] else ""))
+    if summary["failing_checks"]:
+        print("Failing checks: " + ", ".join(f"{k} ×{v}" for k, v in summary["failing_checks"].items()))
+    print(f"Results, transcripts and summary: {out}")
+    return 0
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     env = BACKEND_DIR / ".env"
     if not env.exists():
@@ -212,6 +258,16 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("index", help="build the semantic search index (runs after every sync anyway)")
     p.add_argument("--rebuild", action="store_true", help="re-embed everything, e.g. after changing models")
     p.set_defaults(fn=cmd_index)
+
+    p = sub.add_parser("eval", help="ask a set of questions and check the answers' citations and content")
+    p.add_argument("cases", type=Path, help="case file, e.g. evals/demo.json or data/evals/mine.json")
+    p.add_argument("--reps", type=int, default=1, help="times to ask each question (default 1)")
+    p.add_argument("--effort", default="medium", choices=["low", "medium", "high", "xhigh", "max"])
+    p.add_argument("--case", action="append", help="only this case id (repeatable)")
+    p.add_argument("--timeout", type=float, default=300, help="seconds allowed per question (default 300)")
+    p.add_argument("--out", type=Path, help="output folder (default data/evals/runs/<time>)")
+    p.add_argument("--yes", action="store_true", help="don't ask before spending API credits")
+    p.set_defaults(fn=cmd_eval)
 
     p = sub.add_parser("transcribe", help="transcribe handwritten note pages with Claude vision")
     p.add_argument("--course", help="only this course")

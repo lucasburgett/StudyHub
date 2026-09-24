@@ -117,6 +117,9 @@ def run_chat(
     tool_log: list[dict] = []
     usage: dict[str, int] = {}
     error: str | None = None
+    error_kind: str | None = None  # api | refusal | truncated | steps | tool_json
+    served_model: str | None = None
+    stop_reason: str | None = None
     json_retries = 0
 
     step = 0
@@ -148,15 +151,16 @@ def run_chat(
             # Tool input JSON the SDK couldn't parse at all (eager input streaming). Re-issue the step.
             json_retries += 1
             if json_retries > 2:
-                error = f"The model produced unreadable tool input ({e})."
+                error, error_kind = f"The model produced unreadable tool input ({e}).", "tool_json"
                 break
             step -= 1
             continue
         except anthropic.APIError as e:
-            error = getattr(e, "message", None) or str(e)
+            error, error_kind = getattr(e, "message", None) or str(e), "api"
             log.error("Claude API error: %s", error)
             break
 
+        served_model, stop_reason = final.model, final.stop_reason
         for key in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"):
             usage[key] = usage.get(key, 0) + (getattr(final.usage, key, 0) or 0)
 
@@ -167,7 +171,7 @@ def run_chat(
             texts.append(step_text)
 
         if final.stop_reason == "refusal":
-            error = "Claude declined to answer this one."
+            error, error_kind = "Claude declined to answer this one.", "refusal"
             break
         tool_uses = [b for b in content if b.get("type") == "tool_use"]
         if final.stop_reason == "pause_turn":
@@ -176,7 +180,7 @@ def run_chat(
             break
         if final.stop_reason == "max_tokens":
             new_turns.pop()
-            error = "The answer ran too long and was cut off."
+            error, error_kind = "The answer ran too long and was cut off.", "truncated"
             break
 
         results = []
@@ -201,7 +205,7 @@ def run_chat(
                             "is_error": result.is_error})
         new_turns.append({"role": "user", "content": results})
     else:
-        error = "Stopped after too many tool calls. Try a narrower question."
+        error, error_kind = "Stopped after too many tool calls. Try a narrower question.", "steps"
 
     text = "\n\n".join(texts)
     # Locators the model took from the course map are valid too.
@@ -223,5 +227,5 @@ def run_chat(
     conn.execute("UPDATE threads SET updated_at = ? WHERE id = ?", (now_iso(), thread_id))
     conn.commit()
     if error:
-        yield "error", {"message": error}
-    yield "done", {"message_id": message_id, "usage": usage}
+        yield "error", {"message": error, "kind": error_kind}
+    yield "done", {"message_id": message_id, "usage": usage, "model": served_model, "stop_reason": stop_reason}

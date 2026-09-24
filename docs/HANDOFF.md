@@ -44,6 +44,7 @@ hosts. Your first job is to make it work on real data (section below).
 | Auto-sync while serving, CI, Makefile | Built | `sync.py`, `.github/workflows/ci.yml`, `Makefile` |
 | Settings page (writes `backend/.env`, Test connection per source) | Built; used in a real browser | `envfile.py`, `checks.py`, `web/src/components/settings/` |
 | Localhost-only guard (Host and Origin checks) | Built | `api.py` (`local_only`) |
+| Eval harness (`studyhub eval`) | Built; run against a stand-in model only | `evals.py`, `backend/evals/demo.json` |
 
 ## First task: make it work on real data
 
@@ -115,11 +116,13 @@ emails, grades or tokens), and run `make test`.
 
 ## After that, in priority order
 
-1. **Evals (Phase 4 of the plan).**
-   - Collect about 40 of Lucas's real questions, each with the locator that should be cited.
-   - Script them against `run_chat`. Score whether the answer cites an expected locator, and
-     whether it's correct.
-   - Use it to tune retrieval and prompts. The `claude-api` skill has a `build-eval` flow.
+1. **Evals (Phase 4 of the plan).** The harness is built (`studyhub eval`; format in
+   `backend/evals/demo.json`). What's missing is the questions:
+   - Collect about 40 of Lucas's real questions with him, each with the source a good answer
+     should cite. Keep them in `data/evals/` (not committed).
+   - Cover both directions: include questions the materials *don't* answer.
+   - Run with `--reps 3`, then use the results to tune retrieval and prompts. The `claude-api`
+     skill's `build-eval` and `hillclimb` flows fit here; get his OK on cost first.
 2. **Granola without Business.** Granola's MCP server (`https://mcp.granola.ai/mcp`, OAuth)
    works on every plan. On the free plan it only returns AI notes (no raw transcripts), and
    only for the last 30 days, so sync must run at least weekly.

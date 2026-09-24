@@ -1,0 +1,115 @@
+{
+  "about": "Questions about the example data set (`studyhub demo`). Copy this shape for your own questions, but keep those in data/evals/, which git ignores.",
+  "cases": [
+    {
+      "id": "init-loss",
+      "course": "CS 231N",
+      "question": "What should the softmax loss be at initialization on CIFAR-10, and why?",
+      "cites_any": [
+        {
+          "title": "CS 231N Lecture 3",
+          "at": "47:30"
+        },
+        {
+          "title": "lecture_3_linear_classifiers_and_loss_functions.pdf",
+          "page": 5
+        }
+      ],
+      "mentions": [
+        "2.3"
+      ],
+      "tags": [
+        "lecture"
+      ]
+    },
+    {
+      "id": "max-gate",
+      "course": "CS 231N",
+      "question": "In backprop, what does a max gate do with the upstream gradient?",
+      "cites_any": [
+        {
+          "title": "CS 231N Lecture 5",
+          "at": "34:10"
+        },
+        {
+          "title": "lecture_5_neural_networks_and_backpropagation.pdf",
+          "page": 4
+        }
+      ],
+      "mentions": [
+        "re:rout(e|es|ing)|larger|max"
+      ],
+      "tags": [
+        "lecture"
+      ]
+    },
+    {
+      "id": "quiz-deduction",
+      "course": "CS 231N",
+      "question": "Why did I lose points on Quiz 1?",
+      "cites_any": [
+        {
+          "assignment": "Quiz 1",
+          "question": 2
+        }
+      ],
+      "mentions": [
+        "re:log ?(base )?10|log10|natural log|ln"
+      ],
+      "tools": [
+        "get_feedback"
+      ],
+      "tags": [
+        "grades"
+      ]
+    },
+    {
+      "id": "next-due",
+      "course": "CS 231N",
+      "question": "What's the next thing due in CS 231N?",
+      "cites_any": [
+        {
+          "assignment": "Assignment 1"
+        }
+      ],
+      "tools": [
+        "list_assignments"
+      ],
+      "tags": [
+        "deadlines"
+      ]
+    },
+    {
+      "id": "unrecorded-lecture",
+      "course": "CS 231N",
+      "question": "Catch me up on lecture 1.",
+      "cites_any": [
+        {
+          "title": "lecture_1_introduction.pdf"
+        },
+        {
+          "title": "CS 231N lecture notes",
+          "page": 1
+        }
+      ],
+      "mentions": [
+        "re:not recorded|no recording|wasn't recorded|isn't a recording|no transcript"
+      ],
+      "tags": [
+        "lecture",
+        "gaps"
+      ]
+    },
+    {
+      "id": "not-covered-yet",
+      "course": "CS 231N",
+      "question": "Have we covered transformers in lecture yet? Point me to where.",
+      "mentions": [
+        "re:not (yet|been)|haven't|hasn't|no lecture|don't see|doesn't appear"
+      ],
+      "tags": [
+        "negative"
+      ]
+    }
+  ]
+}
