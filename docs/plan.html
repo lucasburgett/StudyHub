@@ -325,7 +325,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <span><span class="dot gradescope"></span>Gradescope</span>
     <span><span class="dot goodnotes"></span>GoodNotes</span>
     <span><span class="dot granola"></span>Granola</span>
-    <span>Repo is empty today (README only)</span>
+    <span>Built, and running on your Mac on example data</span>
   </div>
 </header>
 
@@ -374,13 +374,13 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
 <section class="block" id="built">
   <header>
     <span class="eyebrow">What's built · September 24, 2026</span>
-    <h2>Phases 1–3 are built. Nothing has touched your real accounts yet.</h2>
-    <p>The code is on the branch <a href="https://github.com/lucasburgett/StudyHub/tree/claude/class-resources-chat-qcay22" target="_blank" rel="noopener">claude/class-resources-chat-qcay22</a>, and CI passes on it. There's no pull request yet. An agent working locally can pick it up from <a href="https://github.com/lucasburgett/StudyHub/blob/claude/class-resources-chat-qcay22/docs/HANDOFF.md" target="_blank" rel="noopener">docs/HANDOFF.md</a>, and <code>CLAUDE.md</code> points it there automatically.</p>
+    <h2>Phases 1–3 are built, and chat runs on your Claude Max plan. Your course accounts aren't connected yet.</h2>
+    <p>Chat no longer needs an API key: it runs through Claude Code on your Max plan, and answered real questions on your Mac on September 24. The code is on the branch <a href="https://github.com/lucasburgett/StudyHub/tree/claude/class-resources-chat-qcay22" target="_blank" rel="noopener">claude/class-resources-chat-qcay22</a>, and CI passes on it. There's no pull request yet. An agent working locally can pick it up from <a href="https://github.com/lucasburgett/StudyHub/blob/claude/class-resources-chat-qcay22/docs/HANDOFF.md" target="_blank" rel="noopener">docs/HANDOFF.md</a>, and <code>CLAUDE.md</code> points it there automatically.</p>
   </header>
 
   <figure class="shot">
     <img src="app-chat.png" width="1440" height="900" alt="The built StudyHub app: CS 231N lecture timeline in the middle, and a chat answer on the right with citation chips for a slide page, a recording timestamp and an assignment.">
-    <figcaption>The built app running on its example data set. The chat answer here came from a local stand-in for Claude, because no API key was available while building.</figcaption>
+    <figcaption>The app on its example data set, with a real answer from Claude Opus 5 on your Max plan. Each chip opens the slide page, recording minute, notes page or assignment it cites.</figcaption>
   </figure>
 
   <div class="table-wrap">
@@ -394,11 +394,12 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <tr><td><strong>Course websites</strong></td><td><span class="pill ok">Built, added</span></td><td>Added because CS 231N posts slides on its own site. Downloads the linked PDFs and public Google Slides, and dates lectures from the schedule table.</td></tr>
         <tr><td><strong>Lecture timeline</strong></td><td><span class="pill ok">Built</span></td><td>Rebuilt after every sync from, in order: the imported schedule, recording dates, dated note pages, and "Lecture N" files. <code>studyhub schedule</code> imports the schedule from the syllabus, the course site or a CSV.</td></tr>
         <tr><td><strong>Search</strong></td><td><span class="pill ok">Built</span></td><td>Keyword search (SQLite FTS5), plus optional semantic search (Voyage, or a local model), with the two result lists merged.</td></tr>
-        <tr><td><strong>Chat agent</strong></td><td><span class="pill warn">Real API not called yet</span></td><td>Eight read-only tools, streamed answers, and citation chips the server checks against what the tools actually returned. Uses <code>claude-opus-5</code>.</td></tr>
-        <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Not run yet</span></td><td>Claude vision, one page at a time, sending only new or changed pages.</td></tr>
+        <tr><td><strong>Chat agent</strong></td><td><span class="pill ok">Working on your Max plan</span></td><td>Eight read-only tools, streamed answers, and citation chips the server checks against what the tools actually returned. Uses <code>claude-opus-5</code>, either on your Claude plan through Claude Code or on an API key (Settings → Claude).</td></tr>
+        <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Not run yet</span></td><td>Claude vision, one page at a time, sending only new or changed pages. Needs an API key for now; schedule import does too.</td></tr>
         <tr><td><strong>Web app</strong></td><td><span class="pill ok">Built</span></td><td>Timeline, viewer (PDF pages, transcript timestamps, graded feedback), chat, search, sync status, dark mode, phone layout.</td></tr>
         <tr><td><strong>Setup, auto-sync, CI</strong></td><td><span class="pill ok">Built</span></td><td><code>make setup</code>. Syncs on its own while running. GitHub Actions runs the tests and build on every push.</td></tr>
-        <tr><td><strong>Evals</strong></td><td><span class="pill muted">Not started</span></td><td>Phase 4: about 40 of your real questions, each with the source it should cite.</td></tr>
+        <tr><td><strong>Settings page</strong></td><td><span class="pill ok">Built</span></td><td>Fill in each source's login in the app, with a Test connection button for each. It writes <code>backend/.env</code>, and only this computer can reach it.</td></tr>
+        <tr><td><strong>Evals</strong></td><td><span class="pill warn">Harness built</span></td><td><code>studyhub eval</code> asks a set of questions and checks each answer cites the right source. What's missing is about 40 of your real questions.</td></tr>
       </tbody>
     </table>
   </div>
@@ -407,8 +408,10 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <div class="panel good">
       <h3>Verified</h3>
       <ul>
-        <li>50 backend tests against fake Canvas, Gradescope, Granola and course-site servers</li>
-        <li>The chat loop through the real Anthropic SDK, talking to a local stand-in server</li>
+        <li>84 backend tests against fake Canvas, Gradescope, Granola and course-site servers</li>
+        <li>Chat on your Max plan: a question from the terminal and a follow-up in the web app, both answered by Claude with valid citations</li>
+        <li>That Claude Code gets only StudyHub's read-only tools: no shell, file or web access</li>
+        <li>The API-key chat loop through the real Anthropic SDK, talking to a local stand-in server</li>
         <li>The whole app in a headless browser on the example data, including the phone layout and dark mode</li>
         <li><code>make setup</code> on a clean clone</li>
         <li>CI on GitHub</li>
@@ -418,7 +421,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
       <h3>Not verified yet</h3>
       <ul>
         <li>Any real account. The build sandbox's network blocked <code>canvas.stanford.edu</code> and the other sources</li>
-        <li>A real Claude API call</li>
+        <li>The API-key path against the real API (chat uses your Max plan instead)</li>
         <li>Gradescope's submission page format, and Granola's paged-transcript endpoint</li>
         <li>How well handwriting gets transcribed, and embeddings from a real model</li>
       </ul>
@@ -428,11 +431,11 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <div class="stack">
     <h3>Next, in order</h3>
     <ol class="next">
-      <li>On your Mac: <code>make setup</code>, fill in <code>backend/.env</code>, then <code>make check</code>. Make a fresh Canvas token with an expiry date, and revoke the one shared in chat.</li>
+      <li>Open Settings in the app and add a fresh Canvas token with an expiry date (and revoke the one shared in chat), then Test connection.</li>
       <li>Sync Canvas and fix whatever real data breaks: how course codes are read, lecture numbering, courses with the Files tab hidden.</li>
-      <li>Make the first real chat call (<code>studyhub ask "What's due this week?"</code>) and fix anything the API rejects.</li>
       <li>Gradescope feedback, your Granola plan, the GoodNotes backup folder, and this term's course site.</li>
-      <li>Evals built from your real questions, then use them to tune search and prompts.</li>
+      <li>Evals built from your real questions, run on your Max plan, then use them to tune search and prompts.</li>
+      <li>Schedule import and handwriting transcription on your Max plan, so nothing needs an API key.</li>
     </ol>
   </div>
 </section>
@@ -763,7 +766,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <div class="stack">
       <h3>Principles</h3>
       <ul class="plain">
-        <li><strong>Local first.</strong> Runs on your laptop. Grades, notes, and credentials stay there, apart from what's sent to the Claude API to answer a question.</li>
+        <li><strong>Local first.</strong> Runs on your laptop. Grades, notes, and credentials stay there, apart from what's sent to Claude to answer a question.</li>
         <li><strong>Read-only agent.</strong> No tool can post, submit, or send anything. Text inside a Canvas post or a PDF is treated as data, which limits what a prompt injection could do.</li>
         <li><strong>Sources fail on their own.</strong> Each connector is isolated. If Gradescope breaks, the rest keeps working and the sync status says so.</li>
       </ul>
@@ -833,7 +836,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <header>
     <span class="eyebrow">Agent</span>
     <h2>A small set of read-only tools</h2>
-    <p>The agent runs on the Claude Messages API with the Python SDK's tool runner. It doesn't need Managed Agents or a sandbox, because every tool is a local database or file read.</p>
+    <p>The agent runs one of two ways. On your Claude Max plan, Claude Code runs it through the Claude Agent SDK, with every built-in Claude Code tool, setting and plugin switched off. With an API key, StudyHub runs the loop itself on the Messages API. Either way it has only these tools, and it needs no sandbox, because every tool is a local database or file read.</p>
   </header>
   <div class="table-wrap">
     <table>
@@ -871,7 +874,8 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <li>Claude Opus 5 (<code>claude-opus-5</code>) with adaptive thinking and streaming.</li>
         <li>Effort <code>medium</code> for everyday chat and <code>high</code> for exam prep. Tune both against your evals.</li>
         <li>Message Batches API for backfills and page transcription, at 50% off.</li>
-        <li>Server-side refusal fallbacks turned on, so a blocked request is retried on another model instead of failing.</li>
+        <li>With an API key, server-side refusal fallbacks are on, so a blocked request is retried on another model instead of failing.</li>
+        <li>On your Max plan, chat counts against the plan's usage limits, the same as your Claude Code sessions.</li>
       </ul>
     </div>
   </div>
@@ -893,7 +897,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
 <b>assignments</b>    id, course_id, source, external_id, title, due_at, points, status, score, url
 <b>feedback</b>       id, assignment_id, question, points_lost, rubric_items, comment, page
 <b>sync_runs</b>      id, source, started_at, finished_at, status, items_changed, error
-<b>threads</b>        id, scope, title, created_at
+<b>threads</b>        id, scope, title, backend, agent_session_id, created_at
 <b>messages</b>       id, thread_id, role, text, api_json, tools_json, citations_json, created_at
 <b>schedule</b>       course_id, number, date, title   <i>imported lecture plan; anchors lecture numbers and dates</i></pre>
 </section>
@@ -903,7 +907,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <header>
     <span class="eyebrow">Cost</span>
     <h2>A few dollars per class per quarter, plus chat</h2>
-    <p>Estimates at Claude Opus 5 list prices ($5 input and $25 output per million tokens). Replace them with real numbers from usage logs after Phase 3.</p>
+    <p>Estimates at Claude Opus 5 list prices ($5 input and $25 output per million tokens), for when you use an API key. On your Max plan, chat costs nothing extra and counts against the plan's usage limits instead.</p>
   </header>
   <div class="table-wrap">
     <table>
@@ -956,7 +960,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <li>
       <span class="ph-num">3</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Agent chat</h3><span class="pill ok">Built</span></div>
+        <div class="ph-h"><h3>Agent chat</h3><span class="pill ok">Built · running on Max</span></div>
         <p>Add the tools, the course-map prompt with caching, streaming, citation chips that open the viewer, saved threads, and the scope switch.</p>
         <p class="done-when"><b>Done when</b>30 real questions from your classes get correct answers with working citations.</p>
       </div>
@@ -964,7 +968,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <li>
       <span class="ph-num">4</span>
       <div class="ph-body">
-        <div class="ph-h"><h3>Study features and evals</h3><span class="pill warn">Quick actions built; evals not started</span></div>
+        <div class="ph-h"><h3>Study features and evals</h3><span class="pill warn">Quick actions and eval harness built; questions not collected</span></div>
         <p>Add the quick actions (catch me up, quiz me, explain my deductions, midterm review). Keep an eval set of about 40 of your real questions with the sources that should be cited, and rerun it whenever retrieval or prompts change. Optionally, expose the same tools as an MCP server so Claude Code and the Claude apps can use StudyHub too.</p>
         <p class="done-when"><b>Done when</b>eval scores are tracked and retrieval misses are rare enough that you stop noticing them.</p>
       </div>
@@ -1027,6 +1031,8 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <tr><td><strong>Math is mis-transcribed from handwriting</strong></td><td>The viewer always shows the original page next to the transcription, and citations point to the page.</td></tr>
         <tr><td><strong>The agent makes up a citation</strong></td><td>The server drops any locator that no tool returned in that turn.</td></tr>
         <tr><td><strong>Course content contains instructions</strong> (prompt injection)</td><td>The agent has no tools that write, post, or send, so there's nothing harmful for injected text to trigger.</td></tr>
+        <tr><td><strong>On your Max plan, the agent reaches Claude Code's own tools</strong> (shell, files, web)</td><td>They're switched off, along with your Claude Code settings, hooks and plugins, and each answer stops if Claude Code offers anything but StudyHub's tools. Tests check both.</td></tr>
+        <tr><td><strong>Anthropic changes the rules for using a plan outside its apps</strong></td><td>The policy changed three times in 2026. The API-key path stays built; switch in Settings → Claude.</td></tr>
         <tr><td><strong>Lectures go unrecorded</strong></td><td>The timeline shows the gap, and the agent says it has no recording for that lecture instead of guessing.</td></tr>
       </tbody>
     </table>
