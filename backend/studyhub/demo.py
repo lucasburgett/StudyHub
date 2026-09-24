@@ -157,8 +157,6 @@ def _slides_pdf(title: str, pages: list[tuple[str, str]]) -> bytes:
         page = doc.new_page(width=720, height=405)
         page.insert_textbox(pymupdf.Rect(40, 40, 680, 110), heading, fontsize=26, fontname="helv")
         page.insert_textbox(pymupdf.Rect(40, 120, 680, 380), body, fontsize=16, fontname="helv")
-        page.insert_textbox(pymupdf.Rect(40, 380, 680, 400), f"CS 231N · {title} · example slides", fontsize=8,
-                            fontname="helv", color=(0.5, 0.5, 0.5))
     data = doc.tobytes()
     doc.close()
     return data
