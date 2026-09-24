@@ -10,9 +10,10 @@ came from (a slide page, a minute of a lecture recording, a page of handwritten 
   (open it in a browser).
 - The HTTP API the web app uses: [`docs/API.md`](docs/API.md).
 
-Everything runs on your own computer. Course files, grades and credentials stay there; the
-only thing sent anywhere is the material the agent reads to answer a question, which goes to
-the Claude API.
+Everything runs on your own computer, and course files, grades and credentials are stored
+there. Two things leave it: what the agent reads to answer a question (and note pages you ask it
+to transcribe) goes to the Claude API, and if you turn on Voyage for semantic search, course text
+goes to Voyage to be embedded.
 
 ## Quick start
 
