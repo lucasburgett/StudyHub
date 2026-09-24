@@ -1,0 +1,958 @@
+<title>StudyHub Build Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F4F5F1;
+  --surface: #FFFFFF;
+  --surface-2: #ECEEE7;
+  --ink: #18202A;
+  --ink-2: #455060;
+  --ink-3: #6A7482;
+  --line: #D7DBD1;
+  --grid: rgba(43, 85, 201, 0.055);
+  --accent: #2B55C9;
+  --accent-soft: #E2E9FA;
+  --hl: #EDF485;
+  --hl-ink: #18202A;
+  --canvas: #C2412D;
+  --gradescope: #13806F;
+  --goodnotes: #6B50C8;
+  --granola: #A5680F;
+  --ok: #2E7A3A;
+  --warn: #9A620C;
+  --bad: #B3261E;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Public Sans", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #10141A;
+    --surface: #171D25;
+    --surface-2: #1E2530;
+    --ink: #E6E9ED;
+    --ink-2: #B2BAC5;
+    --ink-3: #8A94A1;
+    --line: #2B3340;
+    --grid: rgba(134, 166, 255, 0.045);
+    --accent: #88A7FF;
+    --accent-soft: #1D2947;
+    --hl: #4E561C;
+    --hl-ink: #F3F6D2;
+    --canvas: #F08571;
+    --gradescope: #4FC6B1;
+    --goodnotes: #AD98F6;
+    --granola: #E2AA4C;
+    --ok: #74C983;
+    --warn: #E2AA4C;
+    --bad: #F28B82;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #10141A;
+  --surface: #171D25;
+  --surface-2: #1E2530;
+  --ink: #E6E9ED;
+  --ink-2: #B2BAC5;
+  --ink-3: #8A94A1;
+  --line: #2B3340;
+  --grid: rgba(134, 166, 255, 0.045);
+  --accent: #88A7FF;
+  --accent-soft: #1D2947;
+  --hl: #4E561C;
+  --hl-ink: #F3F6D2;
+  --canvas: #F08571;
+  --gradescope: #4FC6B1;
+  --goodnotes: #AD98F6;
+  --granola: #E2AA4C;
+  --ok: #74C983;
+  --warn: #E2AA4C;
+  --bad: #F28B82;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-inline: 20px;
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1060px; margin: 0 auto; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; color: var(--ink); margin: 0; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 1.7rem; line-height: 1.15; font-weight: 650; letter-spacing: -0.01em; }
+h3 { font-size: 1.12rem; line-height: 1.3; font-weight: 650; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+mark { background: var(--hl); color: var(--hl-ink); padding: 0 0.2em; border-radius: 2px; }
+.eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+
+/* Header */
+header.top { padding-block: 56px 28px; display: grid; gap: 16px; }
+header.top .lede { font-size: 1.15rem; color: var(--ink-2); max-width: 62ch; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.86rem; color: var(--ink-3); }
+.meta-row span { display: inline-flex; align-items: center; gap: 6px; }
+
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 8px; padding-block: 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 36px; }
+nav.toc a { font-size: 0.86rem; text-decoration: none; color: var(--ink-2); padding: 3px 10px; border-radius: 999px; border: 1px solid transparent; }
+nav.toc a:hover { border-color: var(--line); background: var(--surface); color: var(--ink); }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 16px; margin-bottom: 64px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.panel.verdict { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.panel h3 { font-size: 1rem; }
+.panel p { font-size: 0.95rem; color: var(--ink-2); }
+.panel .big { font-family: var(--display); font-size: 1.35rem; line-height: 1.25; font-weight: 600; color: var(--ink); }
+.status-list, .check-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 0.9rem; }
+.status-list li { display: grid; grid-template-columns: 1fr; gap: 2px; }
+.status-list .who { font-weight: 600; display: inline-flex; align-items: center; gap: 7px; }
+.status-list .what { color: var(--ink-2); }
+.check-list li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; color: var(--ink-2); }
+.box { width: 14px; height: 14px; border: 1.5px solid var(--ink-3); border-radius: 3px; margin-top: 4px; }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.canvas { background: var(--canvas); }
+.dot.gradescope { background: var(--gradescope); }
+.dot.goodnotes { background: var(--goodnotes); }
+.dot.granola { background: var(--granola); }
+
+/* Sections */
+section.block { display: grid; gap: 20px; margin-bottom: 72px; scroll-margin-top: 16px; }
+section.block > header { display: grid; gap: 8px; }
+section.block > header p { color: var(--ink-2); max-width: 68ch; }
+.stack { display: grid; gap: 14px; }
+.stack > p, .stack > ul { max-width: 68ch; }
+ul.plain { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; }
+ul.plain li::marker { color: var(--ink-3); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; background: var(--surface-2); white-space: nowrap; }
+td { color: var(--ink-2); }
+td strong { color: var(--ink); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.pick td { background: var(--accent-soft); }
+tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.src-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.pill { display: inline-block; font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); }
+.pill.warn { color: var(--warn); }
+.pill.bad { color: var(--bad); }
+.pill.accent { color: var(--accent); }
+
+/* Mockup */
+.mock-label { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mock { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; font-size: 0.86rem; box-shadow: 0 18px 40px -28px rgba(20, 30, 50, 0.45); }
+.mock-top { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
+.mock-logo { font-family: var(--display); font-weight: 700; font-size: 1rem; }
+.mock-search { flex: 1 1 200px; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; color: var(--ink-3); background: var(--surface); }
+.mock-sync { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 0.8rem; }
+.mock-body { display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 340px); min-height: 460px; }
+.mock-side { border-right: 1px solid var(--line); padding: 14px 10px; display: grid; gap: 4px; align-content: start; }
+.mock-side .it { padding: 6px 10px; border-radius: 6px; color: var(--ink-2); }
+.mock-side .it.on { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+.mock-side .hint { font-size: 0.76rem; color: var(--ink-3); padding: 8px 10px 0; line-height: 1.4; }
+.mock-side .sep { height: 1px; background: var(--line); margin: 8px 4px; }
+.mock-main { padding: 16px 18px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.course-h { display: grid; gap: 2px; }
+.course-h b { font-family: var(--display); font-size: 1.15rem; }
+.course-h span { color: var(--ink-3); font-size: 0.8rem; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.tabs span { padding: 6px 10px; color: var(--ink-3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs span.on { color: var(--ink); border-color: var(--accent); font-weight: 600; }
+.week { display: grid; gap: 8px; }
+.week-h { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lec { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; }
+.lec-h { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.lec-h b { font-weight: 600; }
+.lec-h span { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 0.8rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); white-space: nowrap; }
+.chip.gap { border-style: dashed; color: var(--ink-3); background: transparent; }
+.chip.due { border-color: var(--gradescope); color: var(--ink); }
+.mock-chat { border-left: 1px solid var(--line); background: var(--surface-2); padding: 14px; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; min-width: 0; }
+.scope { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--ink-3); }
+.scope b { color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 2px 9px; border-radius: 999px; font-weight: 600; }
+.thread { display: grid; gap: 10px; align-content: start; }
+.msg-u { justify-self: end; max-width: 92%; background: var(--accent); color: var(--bg); padding: 8px 11px; border-radius: 10px 10px 2px 10px; }
+.trail { display: grid; gap: 3px; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); padding-left: 2px; }
+.msg-a { background: var(--surface); border: 1px solid var(--line); padding: 10px 12px; border-radius: 10px 10px 10px 2px; display: grid; gap: 8px; color: var(--ink); }
+.cite { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 0.7rem; padding: 1px 7px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.compose { display: grid; gap: 8px; }
+.compose .input { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 10px; color: var(--ink-3); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick span { font-size: 0.74rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); background: var(--surface); }
+
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.feature { display: grid; gap: 6px; align-content: start; padding-top: 12px; border-top: 2px solid var(--ink); }
+.feature p { font-size: 0.92rem; color: var(--ink-2); }
+
+/* Corpus bars */
+.corpus { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.bar-row { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 70px; gap: 12px; align-items: center; font-size: 0.88rem; }
+.bar-row .lab { color: var(--ink-2); }
+.bar-track { height: 12px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-row .val { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.8rem; color: var(--ink); }
+.bar-row.total { border-top: 1px solid var(--line); padding-top: 10px; font-weight: 600; }
+.bar-row.total .lab { color: var(--ink); }
+.corpus .note { font-size: 0.84rem; color: var(--ink-3); }
+
+.callout { border-left: 3px solid var(--accent); background: var(--surface); padding: 16px 20px; border-radius: 0 10px 10px 0; display: grid; gap: 8px; max-width: 78ch; }
+.callout p { color: var(--ink-2); }
+.callout .big { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+
+/* Pipeline diagram */
+.pipe { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 26px; position: relative; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px; display: grid; gap: 8px; align-content: start; position: relative; }
+.stage:not(:last-child)::after {
+  content: "→"; position: absolute; right: -21px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-3); font-size: 1.1rem; font-family: var(--mono);
+}
+.stage .eyebrow { font-size: 0.66rem; }
+.stage h3 { font-size: 0.98rem; }
+.stage ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 0.8rem; color: var(--ink-2); line-height: 1.4; }
+.stage li { display: flex; gap: 6px; align-items: baseline; }
+.stage li .dot { transform: translateY(-1px); }
+.stage.core { border-color: var(--accent); }
+.pipe-foot { font-size: 0.84rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.pipe-foot span { display: inline-flex; gap: 6px; align-items: center; }
+.dash { width: 22px; border-top: 2px dashed var(--ink-3); display: inline-block; }
+
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 36px; }
+.two-col .stack h3 { display: flex; align-items: center; gap: 8px; }
+
+pre.code { margin: 0; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; font-family: var(--mono); font-size: 0.8rem; line-height: 1.65; color: var(--ink-2); }
+pre.code b { color: var(--ink); font-weight: 500; }
+pre.code i { color: var(--ink-3); font-style: normal; }
+
+.prompt-stack { display: grid; gap: 0; max-width: 620px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.prompt-stack div { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 0.88rem; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.prompt-stack div:last-child { border-bottom: 0; }
+.prompt-stack .cached { background: var(--accent-soft); color: var(--ink); }
+.prompt-stack .bp { background: transparent; font-family: var(--mono); font-size: 0.72rem; color: var(--accent); justify-content: center; padding: 4px; border-bottom: 1px dashed var(--accent); }
+.prompt-stack span.r { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-3); }
+
+/* Phases */
+ol.phases { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+ol.phases li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; padding-block: 20px; border-top: 1px solid var(--line); }
+ol.phases li:last-child { border-bottom: 1px solid var(--line); }
+.ph-num { font-family: var(--display); font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--ink-3); }
+ol.phases li.now .ph-num { color: var(--accent); }
+.ph-body { display: grid; gap: 8px; }
+.ph-body .ph-h { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.ph-body p { color: var(--ink-2); max-width: 72ch; }
+.done-when { font-size: 0.88rem; color: var(--ink); }
+.done-when b { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ok); font-weight: 500; margin-right: 6px; }
+
+.decisions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.decision { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.decision p { font-size: 0.92rem; color: var(--ink-2); }
+.decision .rec { font-size: 0.9rem; color: var(--ink); }
+.decision .rec b { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-right: 6px; }
+
+.sources { font-size: 0.86rem; color: var(--ink-3); display: grid; gap: 6px; }
+.sources ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+footer.end { border-top: 1px solid var(--line); padding-top: 20px; display: grid; gap: 14px; }
+
+@media (max-width: 980px) {
+  .summary { grid-template-columns: 1fr 1fr; }
+  .summary .verdict { grid-column: 1 / -1; }
+  .pipe { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px 26px; }
+  .stage:nth-child(3)::after { content: none; }
+  .mock-body { grid-template-columns: 150px minmax(0, 1fr); }
+  .mock-chat { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (max-width: 720px) {
+  body { padding-inline: 16px; }
+  header.top { padding-block: 36px 20px; }
+  .summary, .feature-grid, .two-col, .decisions { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: 1fr; gap: 28px; }
+  .stage:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -25px; transform: translateX(-50%); }
+  .stage:nth-child(3)::after { content: "↓"; }
+  .mock-body { grid-template-columns: 1fr; }
+  .mock-side { border-right: 0; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; }
+  .mock-side .sep, .mock-side .hint { display: none; }
+  .bar-row { grid-template-columns: minmax(0, 1fr) 64px; }
+  .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; }
+  ol.phases li { grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+  .ph-num { font-size: 1.6rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Build plan · lucasburgett/StudyHub · September 24, 2026</span>
+  <h1>StudyHub build plan</h1>
+  <p class="lede">One place to browse everything from your classes, plus a Claude agent that can search and read all of it: Canvas, Gradescope, GoodNotes notes, and Granola lecture recordings.</p>
+  <div class="meta-row">
+    <span><span class="dot canvas"></span>Canvas</span>
+    <span><span class="dot gradescope"></span>Gradescope</span>
+    <span><span class="dot goodnotes"></span>GoodNotes</span>
+    <span><span class="dot granola"></span>Granola</span>
+    <span>Repo is empty today (README only)</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#sources">Sources</a>
+  <a href="#interface">Interface</a>
+  <a href="#rag">Does RAG make sense?</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#ingestion">Ingestion</a>
+  <a href="#agent">Agent</a>
+  <a href="#data">Data model</a>
+  <a href="#cost">Cost</a>
+  <a href="#phases">Build order</a>
+  <a href="#decisions">Decisions</a>
+  <a href="#risks">Risks</a>
+</nav>
+
+<div class="summary">
+  <div class="panel verdict">
+    <span class="eyebrow">Short answer on RAG</span>
+    <p class="big">Use retrieval to find things, and have Claude read whole documents to understand them.</p>
+    <p>Search finds the right lecture, slide, note page, or graded question. Claude then reads that entire document, since one lecture is only about 15k tokens. Deadlines and grades come from database queries, not search. Everything in your classes together is too big to send with every question. <a href="#rag">Reasoning below.</a></p>
+  </div>
+  <div class="panel">
+    <span class="eyebrow">Where things stand (checked today)</span>
+    <ul class="status-list">
+      <li><span class="who"><span class="dot granola"></span>Granola</span><span class="what">Connected as lburgett@stanford.edu. One folder, CS 231N, with no lectures recorded yet.</span></li>
+      <li><span class="who"><span class="dot goodnotes"></span>GoodNotes</span><span class="what">No backups in your Google Drive yet.</span></li>
+      <li><span class="who"><span class="dot canvas"></span>Canvas</span><span class="what">No access yet. Needs a personal access token.</span></li>
+      <li><span class="who"><span class="dot gradescope"></span>Gradescope</span><span class="what">No official API. Needs a password login.</span></li>
+    </ul>
+  </div>
+  <div class="panel">
+    <span class="eyebrow">This week</span>
+    <ul class="check-list">
+      <li><span class="box"></span><span>Choose a Granola plan, then record every lecture into one folder per course.</span></li>
+      <li><span class="box"></span><span>Turn on GoodNotes Auto Backup to Google Drive in PDF format.</span></li>
+      <li><span class="box"></span><span>Create a Canvas access token with an expiry date.</span></li>
+      <li><span class="box"></span><span>Set a Gradescope password and test a login.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- SOURCES -->
+<section class="block" id="sources">
+  <header>
+    <span class="eyebrow">Sources</span>
+    <h2>What each source actually allows</h2>
+    <p>Only Canvas has an official API that works for a student account. Everything else needs a workaround, and each workaround shapes the design.</p>
+  </header>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>How to get the data</th><th>Auth</th><th>What we pull</th><th>Catches</th><th>Today</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td>
+          <td>REST API at <code>/api/v1</code></td>
+          <td>Personal access token (Account → Settings → New access token)</td>
+          <td>Courses, syllabus, modules, files and slides, pages, assignments and due dates, announcements, calendar</td>
+          <td>Instructure has no official MCP server for outside agents. After the April 2026 breach it restricted how tokens can be created, so confirm Stanford still lets students make one. Some CS courses post slides on the course website, not Canvas.</td>
+          <td><span class="pill bad">Not set up</span></td>
+        </tr>
+        <tr>
+          <td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td>
+          <td>Unofficial Python client <code>gradescopeapi</code>, which logs in and parses pages</td>
+          <td>Email and a Gradescope password. SSO accounts set one with "Forgot password".</td>
+          <td>Courses, assignments, due dates, scores, graded submission PDFs with rubric marks</td>
+          <td>No official API. It breaks when Gradescope changes its pages. Poll twice a day at most.</td>
+          <td><span class="pill bad">Not set up</span></td>
+        </tr>
+        <tr>
+          <td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td>
+          <td>Auto Backup to Google Drive as PDF, mirroring your GoodNotes folders</td>
+          <td>Google Drive (read-only API scope, or the local Drive for Desktop folder)</td>
+          <td>One PDF per notebook</td>
+          <td>No API. The PDF's handwriting text layer is fine for prose and weak on math and diagrams, so pages also go through Claude vision.</td>
+          <td><span class="pill warn">No backups found</span></td>
+        </tr>
+        <tr>
+          <td><span class="src-name"><span class="dot granola"></span>Granola</span></td>
+          <td>Public API (<code>public-api.granola.ai/v1</code>, Business and Enterprise) or the official MCP server (<code>mcp.granola.ai/mcp</code>, all plans)</td>
+          <td>API key (<code>grn_…</code>) or OAuth</td>
+          <td>Lecture notes, AI summary, full transcript, folder</td>
+          <td>On the free Basic plan, MCP only sees the last 30 days and can't pull raw transcripts. StudyHub has to keep its own copy either way.</td>
+          <td><span class="pill ok">Connected</span> <span class="pill warn">0 lectures</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- INTERFACE -->
+<section class="block" id="interface">
+  <header>
+    <span class="eyebrow">Interface</span>
+    <h2>Browse everything by lecture, and chat with it</h2>
+    <p>Each course is a timeline of lectures. Each lecture gathers its recording, slides, and your notes, so missing pieces are easy to spot. The chat panel stays open next to whatever you're viewing.</p>
+  </header>
+
+  <div class="mock-label">
+    <span class="eyebrow">Mockup · example content, not your data</span>
+  </div>
+  <div class="mock" role="img" aria-label="Mockup of the StudyHub interface: course list on the left, CS 231N lecture timeline in the middle, chat panel on the right.">
+    <div class="mock-top">
+      <span class="mock-logo">StudyHub</span>
+      <span class="mock-search">Search all classes…</span>
+      <span class="mock-sync"><span class="dot canvas"></span><span class="dot gradescope"></span><span class="dot goodnotes"></span><span class="dot granola"></span> Synced 12 min ago</span>
+    </div>
+    <div class="mock-body">
+      <div class="mock-side">
+        <span class="it">All classes</span>
+        <span class="it on">CS 231N</span>
+        <span class="hint">Your other courses appear here after the first Canvas sync.</span>
+        <span class="sep"></span>
+        <span class="it">Due soon</span>
+        <span class="it">Recent feedback</span>
+        <span class="it">Chat history</span>
+      </div>
+      <div class="mock-main">
+        <div class="course-h">
+          <b>CS 231N</b>
+          <span>Deep Learning for Computer Vision · Autumn 2026</span>
+        </div>
+        <div class="tabs"><span class="on">Timeline</span><span>Assignments</span><span>Files</span><span>Notes</span><span>Recordings</span><span>Announcements</span></div>
+        <div class="week">
+          <span class="week-h">Week 1</span>
+          <div class="lec">
+            <div class="lec-h"><b>Lecture 1 · Introduction</b><span>Tue Sep 22</span></div>
+            <div class="chips">
+              <span class="chip"><span class="dot canvas"></span>Slides · 48 pp</span>
+              <span class="chip"><span class="dot goodnotes"></span>My notes · 3 pp</span>
+              <span class="chip gap"><span class="dot granola"></span>Not recorded</span>
+            </div>
+          </div>
+          <div class="lec">
+            <div class="lec-h"><b>Lecture 2 · Image classification</b><span>Thu Sep 24</span></div>
+            <div class="chips">
+              <span class="chip"><span class="dot canvas"></span>Slides · 61 pp</span>
+              <span class="chip"><span class="dot goodnotes"></span>My notes · 5 pp</span>
+              <span class="chip"><span class="dot granola"></span>Recording · 78 min</span>
+            </div>
+          </div>
+        </div>
+        <div class="week">
+          <span class="week-h">Week 2</span>
+          <div class="lec">
+            <div class="lec-h"><b>Lecture 3 · Linear classifiers and loss</b><span>Tue Sep 29</span></div>
+            <div class="chips">
+              <span class="chip"><span class="dot canvas"></span>Slides · 72 pp</span>
+              <span class="chip"><span class="dot goodnotes"></span>My notes · 6 pp</span>
+              <span class="chip"><span class="dot granola"></span>Recording · 80 min</span>
+            </div>
+          </div>
+          <div class="lec">
+            <div class="lec-h"><b>Assignment 1</b><span>Due Fri Oct 9</span></div>
+            <div class="chips">
+              <span class="chip"><span class="dot canvas"></span>Spec</span>
+              <span class="chip due"><span class="dot gradescope"></span>Submitted · not graded</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-chat">
+        <div class="scope"><span>Scope</span><b>CS 231N ▾</b></div>
+        <div class="thread">
+          <div class="msg-u">Where did lecture explain why softmax uses cross-entropy loss, and does Assignment 1 ask about it?</div>
+          <div class="trail">
+            <span>searched CS 231N · 7 hits</span>
+            <span>read Lecture 3 transcript</span>
+            <span>read Assignment 1 spec</span>
+          </div>
+          <div class="msg-a">
+            <span>It comes up in Lecture 3, about 41 minutes in, where the loss is framed as the negative log probability of the correct class <span class="cite">L3 · 41:12</span> <span class="cite">L3 slides · p.27</span>. Your notes have the same derivation <span class="cite">notes · p.4</span>.</span>
+            <span>Assignment 1 asks you to implement it with a numerically stable softmax <span class="cite">A1 · Q2</span>.</span>
+          </div>
+        </div>
+        <div class="compose">
+          <div class="input">Ask about CS 231N…</div>
+          <div class="quick"><span>What's due this week</span><span>Catch me up on a lecture</span><span>Quiz me</span><span>Explain my deductions</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature">
+      <h3>Lecture timeline</h3>
+      <p>Every item is matched to a lecture by date and course schedule. Gaps like "Not recorded" or "No notes" show at a glance.</p>
+    </div>
+    <div class="feature">
+      <h3>One viewer for everything</h3>
+      <p>PDF pages, transcripts with timestamps, Canvas pages, and graded submissions. Every citation chip opens here at the exact page or minute.</p>
+    </div>
+    <div class="feature">
+      <h3>Scoped chat</h3>
+      <p>Ask across all classes, one class, or just the item on screen ("explain this page"). The trail shows what the agent searched and read.</p>
+    </div>
+    <div class="feature">
+      <h3>Assignments and feedback</h3>
+      <p>Due dates from Canvas and Gradescope in one list, with scores and the rubric items you lost points on.</p>
+    </div>
+    <div class="feature">
+      <h3>Quick actions</h3>
+      <p>Catch me up on a lecture I missed, quiz me on week 3, build a midterm review, explain my deductions.</p>
+    </div>
+    <div class="feature">
+      <h3>Sync status</h3>
+      <p>Last sync time and errors per source, with a Sync now button. A broken Gradescope login shows up here instead of as silent gaps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RAG -->
+<section class="block" id="rag">
+  <header>
+    <span class="eyebrow">Does RAG make sense?</span>
+    <h2>Yes for finding. Reading whole documents for understanding.</h2>
+    <p>The answer depends on two things: how big the material is, and what kinds of questions you'll ask.</p>
+  </header>
+
+  <div class="stack">
+    <h3>How much material one class produces (estimate)</h3>
+    <div class="corpus" role="img" aria-label="Estimated tokens for one class over one quarter: transcripts 300k, slides 80k, notes 45k, Canvas 40k, Gradescope 30k, total about 500k.">
+      <div class="bar-row"><span class="lab">Lecture transcripts (20 × 80 min)</span><span class="bar-track"><span class="bar-fill" style="display:block;width:60%;background:var(--granola)"></span></span><span class="val">~300k</span></div>
+      <div class="bar-row"><span class="lab">Slides (text)</span><span class="bar-track"><span class="bar-fill" style="display:block;width:16%;background:var(--canvas)"></span></span><span class="val">~80k</span></div>
+      <div class="bar-row"><span class="lab">Your notes (~150 pages)</span><span class="bar-track"><span class="bar-fill" style="display:block;width:9%;background:var(--goodnotes)"></span></span><span class="val">~45k</span></div>
+      <div class="bar-row"><span class="lab">Canvas pages, specs, posts</span><span class="bar-track"><span class="bar-fill" style="display:block;width:8%;background:var(--canvas)"></span></span><span class="val">~40k</span></div>
+      <div class="bar-row"><span class="lab">Gradescope feedback</span><span class="bar-track"><span class="bar-fill" style="display:block;width:6%;background:var(--gradescope)"></span></span><span class="val">~30k</span></div>
+      <div class="bar-row total"><span class="lab">One class, one quarter</span><span class="bar-track"><span class="bar-fill" style="display:block;width:100%;background:var(--ink-3)"></span></span><span class="val">~500k</span></div>
+      <p class="note">Tokens. Assumes ~140 spoken words per minute. Four classes come to about 2M tokens a quarter, which is more than Claude's 1M-token context, and the total keeps growing every quarter. A single lecture is about 15k tokens, which Claude can read in full with room to spare.</p>
+    </div>
+  </div>
+
+  <div class="stack">
+    <h3>Different questions need different paths</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>You ask</th><th>Best path</th><th>Why plain RAG struggles</th></tr></thead>
+        <tbody>
+          <tr><td><strong>"What's due this week?"</strong> or "What's my grade in 231N?"</td><td>Database query</td><td>Dates, totals, and "all of X" aren't similarity problems. Top-k search returns some assignments, not all of them.</td></tr>
+          <tr><td><strong>"Where did the professor explain dropout?"</strong></td><td>Hybrid search, then cite the timestamp</td><td>This is the case where search works well.</td></tr>
+          <tr><td><strong>"Explain lecture 7 to me."</strong></td><td>Look up the lecture, then read the whole transcript, slides, and notes</td><td>Chunks lose the thread of an 80-minute argument.</td></tr>
+          <tr><td><strong>"Why did I lose points on A1 Q2, and where was that covered?"</strong></td><td>Gradescope record, then search lectures, then read</td><td>The question crosses sources and mixes structured data with text.</td></tr>
+          <tr><td><strong>"Make me a practice midterm."</strong></td><td>Lecture summaries first, then read the lectures that matter</td><td>It needs everything in scope, and the top 8 chunks won't cover that.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="stack">
+    <h3>Four ways to build it</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th class="num">Cost per question</th><th>Where it breaks</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Send everything with every question</strong></td><td class="num">~$2.50 (one class)</td><td>Four classes don't fit in the context. Even one class is slow and costly. Useful only for a focused study session over a few lectures.</td></tr>
+          <tr><td><strong>Live connectors only</strong> (MCP, no local copy)</td><td class="num">low tokens, slow</td><td>Gradescope and GoodNotes have no API to connect to. Granola's free plan forgets after 30 days. There's no search across sources, and every question waits on several network calls.</td></tr>
+          <tr><td><strong>Classic RAG</strong> (top-k chunks into the prompt)</td><td class="num">~$0.05</td><td>Wrong on lists, dates, and whole-lecture questions. Answers lean on fragments.</td></tr>
+          <tr class="pick"><td><strong>Agent over a synced store</strong>: search to find, read whole documents, query tables</td><td class="num">~$0.10–0.40</td><td>More moving parts than classic RAG. This is the recommendation.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p class="big">Build retrieval, keep it small, and let the agent decide when to use it.</p>
+    <p>At about 2M tokens a quarter, SQLite full-text search plus embeddings in the same file is enough. You don't need a vector database service, a reranker, or LangChain. Claude chooses whether to search, read a whole document, or query a table, the same way Claude Code greps and then opens a file.</p>
+    <p>Use both keyword and vector search. Course vocabulary is exact ("A1 Q2", "batch norm", "ResNet-50"), which favors keywords. Spoken transcripts have transcription errors and paraphrase, which favors embeddings. Before embedding, each chunk gets a short header like <code>CS 231N · Lecture 7 · Oct 14 · transcript · 32:10–35:40</code>. That's a free version of Anthropic's contextual retrieval technique.</p>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="block" id="architecture">
+  <header>
+    <span class="eyebrow">Architecture</span>
+    <h2>Sync into one local store, then answer from it</h2>
+    <p>Sync jobs copy everything into a local store on a schedule. The agent reads from that store, which is fast, keeps history, and allows search across sources. Live calls are only for "check for anything new."</p>
+  </header>
+
+  <div class="pipe">
+    <div class="stage">
+      <span class="eyebrow">Sources</span>
+      <h3>Upstream</h3>
+      <ul>
+        <li><span class="dot canvas"></span>Canvas REST API</li>
+        <li><span class="dot gradescope"></span>Gradescope client</li>
+        <li><span class="dot goodnotes"></span>GoodNotes PDFs in Drive</li>
+        <li><span class="dot granola"></span>Granola API or MCP</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <span class="eyebrow">Sync</span>
+      <h3>Workers</h3>
+      <ul>
+        <li>Canvas every 30 min</li>
+        <li>Gradescope twice a day</li>
+        <li>Drive folder watch</li>
+        <li>Granola after class</li>
+        <li>Skips unchanged items by hash</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <span class="eyebrow">Normalize</span>
+      <h3>Clean and link</h3>
+      <ul>
+        <li>PDF text by page</li>
+        <li>Handwriting → Markdown + LaTeX</li>
+        <li>Transcript windows with times</li>
+        <li>Match items to lectures</li>
+        <li>Lecture summaries</li>
+      </ul>
+    </div>
+    <div class="stage core">
+      <span class="eyebrow">Store</span>
+      <h3>One SQLite file</h3>
+      <ul>
+        <li>Courses, lectures, assignments</li>
+        <li>Documents as Markdown</li>
+        <li>FTS5 keyword index</li>
+        <li>sqlite-vec vectors</li>
+        <li>Raw files on disk</li>
+      </ul>
+    </div>
+    <div class="stage core">
+      <span class="eyebrow">Agent</span>
+      <h3>Claude + tools</h3>
+      <ul>
+        <li>Read-only tools</li>
+        <li>Course map in cached prompt</li>
+        <li>Citations as locators</li>
+        <li>Streams over SSE</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <span class="eyebrow">Interface</span>
+      <h3>Web app</h3>
+      <ul>
+        <li>Course timelines</li>
+        <li>Viewer (pdf.js)</li>
+        <li>Chat panel</li>
+        <li>Sync status</li>
+      </ul>
+    </div>
+  </div>
+  <div class="pipe-foot">
+    <span><span class="dash"></span>The agent can also call <code>sync_now</code> to refresh one source before answering.</span>
+  </div>
+
+  <div class="two-col">
+    <div class="stack">
+      <h3>Stack</h3>
+      <ul class="plain">
+        <li><strong>Backend: Python with FastAPI.</strong> The Gradescope client, the Canvas client, PDF tools (PyMuPDF), and the Anthropic SDK are all strongest in Python.</li>
+        <li><strong>Frontend: React and TypeScript on Vite</strong>, pdf.js for the viewer, server-sent events for streaming answers.</li>
+        <li><strong>Storage: one SQLite file</strong> with FTS5 and sqlite-vec, and raw files on disk named by content hash. Moves to Postgres with pgvector later only if you host it.</li>
+        <li><strong>Scheduler:</strong> APScheduler inside the backend, or launchd on your Mac.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h3>Principles</h3>
+      <ul class="plain">
+        <li><strong>Local first.</strong> Runs on your laptop. Grades, notes, and credentials stay there, apart from what's sent to the Claude API to answer a question.</li>
+        <li><strong>Read-only agent.</strong> No tool can post, submit, or send anything. Text inside a Canvas post or a PDF is treated as data, which limits what a prompt injection could do.</li>
+        <li><strong>Sources fail on their own.</strong> Each connector is isolated. If Gradescope breaks, the rest keeps working and the sync status says so.</li>
+      </ul>
+    </div>
+  </div>
+
+  <pre class="code" aria-label="Proposed repository layout"><b>StudyHub/</b>
+├─ backend/app/
+│  ├─ connectors/   <i>canvas.py · gradescope.py · goodnotes.py · granola.py</i>
+│  ├─ ingest/       <i>pdf_text.py · handwriting.py · transcripts.py · link_lectures.py · index.py</i>
+│  ├─ agent/        <i>tools.py · prompt.py · chat.py</i>
+│  ├─ api/          <i>routes.py (REST + SSE chat)</i>
+│  └─ db/           <i>schema.sql</i>
+├─ backend/scripts/check_access.py
+├─ web/             <i>Vite + React: Timeline, Viewer, Chat, SyncStatus</i>
+└─ data/            <i>gitignored: studyhub.db, raw files</i></pre>
+</section>
+
+<!-- INGESTION -->
+<section class="block" id="ingestion">
+  <header>
+    <span class="eyebrow">Ingestion</span>
+    <h2>Source by source</h2>
+    <p>Everything becomes Markdown with a stable locator (page, slide, or timestamp) and a link to its lecture. The lecture link is what makes the timeline and cross-source answers work.</p>
+  </header>
+  <div class="two-col">
+    <div class="stack">
+      <h3><span class="dot canvas"></span>Canvas</h3>
+      <ul class="plain">
+        <li>Active courses, syllabus, modules, and calendar events. Together they give the lecture schedule, which the rest of the linking depends on.</li>
+        <li>Files download once by content hash. Slides are split one chunk per page.</li>
+        <li>Assignments, pages, and announcements sync incrementally using <code>updated_at</code>.</li>
+        <li>If a course keeps slides on its own website, add that URL to the course record and fetch it the same way.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h3><span class="dot gradescope"></span>Gradescope</h3>
+      <ul class="plain">
+        <li>Assignments, due dates, status, and per-question scores.</li>
+        <li>Graded submission PDFs are downloaded. When rubric items and comments only appear on the page image, Claude vision extracts them into the <code>feedback</code> table.</li>
+        <li>Runs twice a day, with backoff, and never in parallel.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h3><span class="dot goodnotes"></span>GoodNotes</h3>
+      <ul class="plain">
+        <li>Watch the Auto Backup folder. Keep one GoodNotes folder per course so the backup mirrors it.</li>
+        <li>Render each page to an image and hash it. Only new or changed pages get transcribed, so re-exports of a long notebook stay cheap.</li>
+        <li>Claude transcribes each page to Markdown with LaTeX and a short description of any diagram. The original page image stays next to it in the viewer.</li>
+        <li>Tip: write the date at the top of each page. It makes lecture matching almost free.</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h3><span class="dot granola"></span>Granola</h3>
+      <ul class="plain">
+        <li>Record each lecture into its course folder (CS 231N already exists).</li>
+        <li>After class, pull the notes, AI summary, and transcript. Split the transcript into 2–3 minute windows that keep their timestamps.</li>
+        <li>Generate an outline and summary for each lecture once. These feed the course map and "catch me up."</li>
+        <li>Match the recording to a lecture by its start time against the Canvas schedule.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- AGENT -->
+<section class="block" id="agent">
+  <header>
+    <span class="eyebrow">Agent</span>
+    <h2>A small set of read-only tools</h2>
+    <p>The agent runs on the Claude Messages API with the Python SDK's tool runner. It doesn't need Managed Agents or a sandbox, because every tool is a local database or file read.</p>
+  </header>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>What it returns</th><th>Backed by</th></tr></thead>
+      <tbody>
+        <tr><td><code>search</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">query, course?, sources?, date range?</span></td><td>Ranked snippets with locators and lecture links</td><td>FTS5 + sqlite-vec</td></tr>
+        <tr><td><code>read</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">resource_id, pages? / time range?</span></td><td>The full text of a transcript, deck, note, or spec, or a slice of it</td><td>Markdown store</td></tr>
+        <tr><td><code>get_lecture</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course, number or date</span></td><td>Transcript, slides, and your notes for one lecture in one call</td><td>SQL + store</td></tr>
+        <tr><td><code>list_assignments</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course?, status?, due_before?</span></td><td>Deadlines, status, scores</td><td>SQL</td></tr>
+        <tr><td><code>get_feedback</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">assignment, question?</span></td><td>Rubric items applied, comments, points lost, page</td><td>SQL</td></tr>
+        <tr><td><code>list_announcements</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course?, since?</span></td><td>Recent announcements</td><td>SQL</td></tr>
+        <tr><td><code>list_resources</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">course, kind?, week?</span></td><td>The catalog, so the agent can see what exists before reading</td><td>SQL</td></tr>
+        <tr><td><code>sync_now</code><br><span class="mono" style="font-size:0.74rem;color:var(--ink-3)">source, course?</span></td><td>Fresh data from one source before answering</td><td>Connectors</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two-col">
+    <div class="stack">
+      <h3>Prompt layout</h3>
+      <p>The course map (schedule, lecture titles and one-line summaries, assignment list) is small enough to include with every request. Placing it before the cache breakpoint makes it cost about a tenth of the normal input price after the first question.</p>
+      <div class="prompt-stack">
+        <div class="cached"><span>Instructions and tool definitions</span><span class="r">stable</span></div>
+        <div class="cached"><span>Course map for all classes</span><span class="r">~5–10k tokens</span></div>
+        <div class="bp">cache breakpoint</div>
+        <div><span>Today's date and chat scope</span><span class="r">changes</span></div>
+        <div><span>Conversation and tool results</span><span class="r">grows</span></div>
+      </div>
+    </div>
+    <div class="stack">
+      <h3>Citations you can click</h3>
+      <p>Every search hit and read result carries a locator such as <code>231n/L07/transcript@41:12</code>, <code>231n/L07/slides#p27</code>, <code>231n/notes/L07#p3</code>, or <code>231n/A1/Q2</code>. The agent cites with those. The server keeps only locators a tool actually returned in that turn, and the UI turns them into chips that open the viewer at that spot.</p>
+      <h3>Model settings</h3>
+      <ul class="plain">
+        <li>Claude Opus 5 (<code>claude-opus-5</code>) with adaptive thinking and streaming.</li>
+        <li>Effort <code>medium</code> for everyday chat and <code>high</code> for exam prep. Tune both against your evals.</li>
+        <li>Message Batches API for backfills and page transcription, at 50% off.</li>
+        <li>Server-side refusal fallbacks turned on, so a blocked request is retried on another model instead of failing.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DATA -->
+<section class="block" id="data">
+  <header>
+    <span class="eyebrow">Data model</span>
+    <h2>Tables in <code>studyhub.db</code></h2>
+  </header>
+  <pre class="code"><b>courses</b>        id, code, title, term, canvas_id, gradescope_id, granola_folder_id, notes_folder, site_url, ai_policy
+<b>lectures</b>       id, course_id, number, week, starts_at, title, outline, summary
+<b>resources</b>      id, course_id, lecture_id?, source, kind, external_id, title, url,
+               occurred_at, content_hash, raw_path, markdown, synced_at
+               <i>source: canvas | gradescope | goodnotes | granola</i>
+               <i>kind:   slides | file | page | spec | notes | transcript | submission | announcement</i>
+<b>chunks</b>         id, resource_id, locator, header, text        <i>+ chunks_fts (FTS5), chunks_vec (sqlite-vec)</i>
+<b>assignments</b>    id, course_id, source, external_id, title, due_at, points, status, score, url
+<b>feedback</b>       id, assignment_id, question, points_lost, rubric_items, comment, page
+<b>sync_runs</b>      id, source, started_at, finished_at, status, items_changed, error
+<b>threads</b>        id, scope, title, created_at
+<b>messages</b>       id, thread_id, role, content_json, citations_json, created_at</pre>
+</section>
+
+<!-- COST -->
+<section class="block" id="cost">
+  <header>
+    <span class="eyebrow">Cost</span>
+    <h2>A few dollars per class per quarter, plus chat</h2>
+    <p>Estimates at Claude Opus 5 list prices ($5 input and $25 output per million tokens). Replace them with real numbers from usage logs after Phase 3.</p>
+  </header>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Item</th><th class="num">Unit</th><th class="num">Per class, per quarter</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Handwriting transcription</strong> (~150 pages)</td><td class="num">~$0.02 / page</td><td class="num">~$3</td></tr>
+        <tr><td><strong>Lecture outlines and summaries</strong> (20 lectures)</td><td class="num">~$0.10 / lecture</td><td class="num">~$2</td></tr>
+        <tr><td><strong>Embeddings</strong> (~500k tokens)</td><td class="num">—</td><td class="num">under $0.10</td></tr>
+        <tr><td><strong>Same ingestion through the Batch API</strong></td><td class="num">50% off</td><td class="num">~$2.50</td></tr>
+        <tr><td><strong>Chat: quick lookup</strong> ("what's due")</td><td class="num">~$0.03</td><td class="num">—</td></tr>
+        <tr><td><strong>Chat: typical</strong> (search, then read one lecture)</td><td class="num">~$0.20</td><td class="num">—</td></tr>
+        <tr><td><strong>Chat: heavy</strong> (practice exam over 6 lectures)</td><td class="num">~$0.60–1.00</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- PHASES -->
+<section class="block" id="phases">
+  <header>
+    <span class="eyebrow">Build order</span>
+    <h2>Five phases, each usable on its own</h2>
+    <p>The browser is useful before the agent exists, and the agent is only as good as the index behind it, so they're built in that order.</p>
+  </header>
+  <ol class="phases">
+    <li class="now">
+      <span class="ph-num">0</span>
+      <div class="ph-body">
+        <div class="ph-h"><h3>Access and capture</h3><span class="pill accent">This week</span></div>
+        <p>Start recording lectures in Granola, turn on GoodNotes Auto Backup, and get a Canvas token and a Gradescope password. Then write <code>scripts/check_access.py</code>, which logs in to each source and prints what it sees. Material that isn't captured now can't be recovered later, so this phase matters most.</p>
+        <p class="done-when"><b>Done when</b>the script lists your courses from Canvas and Gradescope, a notebook PDF from Drive, and a recorded lecture from Granola.</p>
+      </div>
+    </li>
+    <li>
+      <span class="ph-num">1</span>
+      <div class="ph-body">
+        <div class="ph-h"><h3>Sync and browse</h3></div>
+        <p>Build the four connectors, the SQLite schema, the raw file store, and the web app's course timeline, assignments tab, viewer, and sync status.</p>
+        <p class="done-when"><b>Done when</b>everything in CS 231N shows up in the browser within an hour of appearing upstream.</p>
+      </div>
+    </li>
+    <li>
+      <span class="ph-num">2</span>
+      <div class="ph-body">
+        <div class="ph-h"><h3>Normalize and index</h3></div>
+        <p>Add PDF text extraction, handwriting transcription, transcript windows, lecture matching, lecture summaries, and the FTS5 and vector indexes. Search in the top bar works without the agent.</p>
+        <p class="done-when"><b>Done when</b>searching for a term you only wrote by hand finds the right notes page.</p>
+      </div>
+    </li>
+    <li>
+      <span class="ph-num">3</span>
+      <div class="ph-body">
+        <div class="ph-h"><h3>Agent chat</h3></div>
+        <p>Add the tools, the course-map prompt with caching, streaming, citation chips that open the viewer, saved threads, and the scope switch.</p>
+        <p class="done-when"><b>Done when</b>30 real questions from your classes get correct answers with working citations.</p>
+      </div>
+    </li>
+    <li>
+      <span class="ph-num">4</span>
+      <div class="ph-body">
+        <div class="ph-h"><h3>Study features and evals</h3></div>
+        <p>Add the quick actions (catch me up, quiz me, explain my deductions, midterm review). Keep an eval set of about 40 of your real questions with the sources that should be cited, and rerun it whenever retrieval or prompts change. Optionally, expose the same tools as an MCP server so Claude Code and the Claude apps can use StudyHub too.</p>
+        <p class="done-when"><b>Done when</b>eval scores are tracked and retrieval misses are rare enough that you stop noticing them.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- DECISIONS -->
+<section class="block" id="decisions">
+  <header>
+    <span class="eyebrow">Decisions</span>
+    <h2>Choices that are yours to make</h2>
+  </header>
+  <div class="decisions">
+    <div class="decision">
+      <h3>Granola plan</h3>
+      <p>Transcripts are the richest lecture source, and Granola's docs say raw transcript access needs a paid plan. On the free plan you get AI notes only, and only for 30 days.</p>
+      <p class="rec"><b>Suggested</b>Decide before you start recording. On the free plan, sync at least weekly so nothing ages out.</p>
+    </div>
+    <div class="decision">
+      <h3>Recording permission</h3>
+      <p>Some instructors don't allow students to record lectures, or require that you ask first.</p>
+      <p class="rec"><b>Suggested</b>Check each syllabus, or ask, before recording a course.</p>
+    </div>
+    <div class="decision">
+      <h3>Local or hosted</h3>
+      <p>Hosting gives you phone access. It also means a login system, stored secrets, and a server holding your grades.</p>
+      <p class="rec"><b>Suggested</b>Local first. Revisit after Phase 3.</p>
+    </div>
+    <div class="decision">
+      <h3>Honor-code mode</h3>
+      <p>The agent can read each syllabus's AI policy and switch to hints and concept explanations on open assignments.</p>
+      <p class="rec"><b>Suggested</b>Make it a per-course setting, filled in from the syllabus.</p>
+    </div>
+    <div class="decision">
+      <h3>Model for bulk ingestion</h3>
+      <p>This plan assumes Claude Opus 5 everywhere. A smaller model could transcribe pages for less money, at some risk to accuracy on messy math.</p>
+      <p class="rec"><b>Suggested</b>Start with Opus 5 through the Batch API, then decide using Phase 2 numbers.</p>
+    </div>
+    <div class="decision">
+      <h3>Before any code</h3>
+      <p>Claude with your existing Granola and Google Drive connectors can already answer questions about recorded lectures and backed-up notes. It can't see Gradescope, keep history, or give you the browser.</p>
+      <p class="rec"><b>Suggested</b>Use it as a stopgap while you build.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RISKS -->
+<section class="block" id="risks">
+  <header>
+    <span class="eyebrow">Risks</span>
+    <h2>What could go wrong, and the plan for each</h2>
+  </header>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td><strong>The Gradescope client breaks</strong></td><td>It's an isolated connector that fails visibly in sync status. Everything else keeps working. Pin the library version.</td></tr>
+        <tr><td><strong>A Canvas token grants full account access</strong></td><td>Store it in the macOS Keychain or a gitignored <code>.env</code>, give it an expiry date, and only ever call read endpoints.</td></tr>
+        <tr><td><strong>Math is mis-transcribed from handwriting</strong></td><td>The viewer always shows the original page next to the transcription, and citations point to the page.</td></tr>
+        <tr><td><strong>The agent makes up a citation</strong></td><td>The server drops any locator that no tool returned in that turn.</td></tr>
+        <tr><td><strong>Course content contains instructions</strong> (prompt injection)</td><td>The agent has no tools that write, post, or send, so there's nothing harmful for injected text to trigger.</td></tr>
+        <tr><td><strong>Lectures go unrecorded</strong></td><td>The timeline shows the gap, and the agent says it has no recording for that lecture instead of guessing.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="end">
+  <div class="sources">
+    <span class="eyebrow">Sources</span>
+    <ul>
+      <li><a href="https://canvas.instructure.com/doc/api/" target="_blank" rel="noopener">Canvas LMS REST API</a> · <a href="https://github.com/vishalsachdev/canvas-mcp" target="_blank" rel="noopener">community canvas-mcp</a> · <a href="https://en.wikipedia.org/wiki/2026_Canvas_data_breach" target="_blank" rel="noopener">2026 Canvas data breach</a></li>
+      <li><a href="https://github.com/nyuoss/gradescope-api" target="_blank" rel="noopener">gradescopeapi (unofficial)</a></li>
+      <li><a href="https://support.goodnotes.com/hc/en-us/articles/360001282956-Use-Auto-Backup-to-automatically-create-a-copy-of-your-documents-in-a-supported-cloud-storage" target="_blank" rel="noopener">GoodNotes Auto Backup</a></li>
+      <li><a href="https://docs.granola.ai/introduction" target="_blank" rel="noopener">Granola API</a> · <a href="https://docs.granola.ai/help-center/sharing/integrations/mcp" target="_blank" rel="noopener">Granola MCP</a> · <a href="https://www.granola.ai/blog/granola-free-vs-paid-features-each-plan" target="_blank" rel="noopener">Granola plans</a></li>
+      <li><a href="https://www.anthropic.com/news/contextual-retrieval" target="_blank" rel="noopener">Anthropic: Contextual Retrieval</a></li>
+    </ul>
+  </div>
+</footer>
+
+</div>

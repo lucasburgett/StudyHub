@@ -1,0 +1,16 @@
+# Local data: the database, downloaded course files, secrets
+data/
+backend/.env
+
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Web
+web/node_modules/
+web/dist/
+
+.DS_Store
