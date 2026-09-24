@@ -14,10 +14,12 @@ dependencies = [
   "markdownify>=0.13",
   "gradescopeapi>=1.4",
   "beautifulsoup4>=4.12",
+  "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+local-embeddings = ["fastembed>=0.8"]
 
 [project.scripts]
 studyhub = "studyhub.cli:main"

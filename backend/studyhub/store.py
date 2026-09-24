@@ -267,7 +267,8 @@ def refresh_headers(conn: sqlite3.Connection, resource_id: int) -> None:
         header = chunk_header(
             conn, res["course_id"], c["lecture_id"] or res["lecture_id"], res["kind"], res["title"], c["page"], c["seconds"]
         )
-        conn.execute("UPDATE chunks SET header = ? WHERE id = ? AND header != ?", (header, c["id"], header))
+        conn.execute("UPDATE chunks SET header = ?, embed_model = NULL WHERE id = ? AND header != ?",
+                     (header, c["id"], header))
 
 
 def delete_missing(conn: sqlite3.Connection, source: str, course_id: int, kinds: tuple[str, ...], seen: set[str]) -> int:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import logging
 import re
 import sqlite3
 from dataclasses import dataclass
@@ -100,3 +101,73 @@ def snippet_html(snippet: str) -> str:
 
 def snippet_plain(snippet: str) -> str:
     return snippet.replace("\x02", "").replace("\x03", "")
+
+
+def hybrid_search(
+    conn: sqlite3.Connection,
+    text: str,
+    embedder,
+    *,
+    course_id: int | None = None,
+    sources: list[str] | None = None,
+    kinds: list[str] | None = None,
+    limit: int = 10,
+    per_resource: int = 3,
+    snippet_tokens: int = 32,
+) -> list[Hit]:
+    """Keyword and vector results merged by reciprocal rank fusion.
+
+    Falls back to keyword search alone when there's no embedder or nothing is embedded yet.
+    """
+    keyword = search(conn, text, course_id=course_id, sources=sources, kinds=kinds, limit=40, per_resource=40,
+                     snippet_tokens=snippet_tokens)
+    if embedder is None:
+        return _cap(keyword, limit, per_resource)
+    from .embeddings import nearest
+
+    try:
+        vector_ids = nearest(conn, embedder, text, course_id=course_id, sources=sources, kinds=kinds, k=40)
+    except Exception as e:  # e.g. Voyage unreachable: keyword results are still useful
+        logging.getLogger("studyhub.search").warning("semantic search failed: %s", e)
+        vector_ids = []
+    if not vector_ids:
+        return _cap(keyword, limit, per_resource)
+
+    scores: dict[int, float] = {}
+    for rank, hit in enumerate(keyword):
+        scores[hit.chunk_id] = scores.get(hit.chunk_id, 0) + 1 / (60 + rank)
+    for rank, chunk_id in enumerate(vector_ids):
+        scores[chunk_id] = scores.get(chunk_id, 0) + 1 / (60 + rank)
+    hits = {h.chunk_id: h for h in keyword}
+    missing = [cid for cid in vector_ids if cid not in hits]
+    if missing:
+        rows = conn.execute(
+            f"""
+            SELECT c.id AS chunk_id, c.resource_id, c.page, c.seconds, c.header,
+                   COALESCE(c.lecture_id, r.lecture_id) AS lecture_id,
+                   r.course_id, r.source, r.kind, r.title, co.code AS course_code, c.text
+            FROM chunks c JOIN resources r ON r.id = c.resource_id JOIN courses co ON co.id = r.course_id
+            WHERE c.id IN ({', '.join('?' for _ in missing)})
+            """,
+            missing,
+        ).fetchall()
+        for r in rows:
+            data = dict(r)
+            body = " ".join(data.pop("text").split())
+            data["snippet"] = body[: snippet_tokens * 7] + (" …" if len(body) > snippet_tokens * 7 else "")
+            hits[r["chunk_id"]] = Hit(**data)
+    ranked = sorted((hits[cid] for cid in scores if cid in hits), key=lambda h: -scores[h.chunk_id])
+    return _cap(ranked, limit, per_resource)
+
+
+def _cap(hits: list[Hit], limit: int, per_resource: int) -> list[Hit]:
+    out: list[Hit] = []
+    per: dict[int, int] = {}
+    for h in hits:
+        if per.get(h.resource_id, 0) >= per_resource:
+            continue
+        per[h.resource_id] = per.get(h.resource_id, 0) + 1
+        out.append(h)
+        if len(out) >= limit:
+            break
+    return out

@@ -12,7 +12,8 @@ from pydantic import BaseModel, Field, ValidationError
 
 from ..citations import citation, parse_locator, resource_locator
 from ..config import SOURCES, get_settings
-from ..search import search, snippet_plain
+from ..embeddings import get_embedder
+from ..search import hybrid_search, snippet_plain
 from ..store import find_course
 from ..util import clock, parse_clock, parse_dt
 
@@ -103,9 +104,10 @@ def _schema(model: type[BaseModel]) -> dict:
 
 
 class Toolbox:
-    def __init__(self, conn: sqlite3.Connection, run_sync: Callable[[str], dict] | None = None):
+    def __init__(self, conn: sqlite3.Connection, run_sync: Callable[[str], dict] | None = None, embedder=None):
         self.conn = conn
         self.run_sync = run_sync
+        self.embedder = embedder if embedder is not None else get_embedder()
         self.tz = get_settings().tz
         self.tools = [
             _Tool("search",
@@ -216,8 +218,8 @@ class Toolbox:
     # ------------------------------------------------------------ tools
 
     def _search(self, a: SearchIn) -> ToolResult:
-        hits = search(self.conn, a.query, course_id=self.course_id(a.course), sources=a.sources, kinds=a.kinds,
-                      limit=a.limit, snippet_tokens=48)
+        hits = hybrid_search(self.conn, a.query, self.embedder, course_id=self.course_id(a.course),
+                             sources=a.sources, kinds=a.kinds, limit=a.limit, snippet_tokens=48)
         if not hits:
             return ToolResult(text="No matches. Try other words, or list_resources to browse.", summary="no hits")
         cites: dict[str, dict] = {}

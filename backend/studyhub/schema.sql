@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS chunks (
   text        TEXT NOT NULL,
   image_hash  TEXT,                         -- page image hash, for handwriting transcription
   transcribed INTEGER NOT NULL DEFAULT 0,   -- 1 when text came from Claude vision
+  embedding   BLOB,                         -- float32 vector of header + text
+  embed_model TEXT,                         -- which embedder made it; NULL = needs (re)embedding
   UNIQUE (resource_id, seq)
 );
 CREATE INDEX IF NOT EXISTS chunks_lecture ON chunks(lecture_id);
@@ -87,7 +89,7 @@ END;
 CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
   INSERT INTO chunks_fts(chunks_fts, rowid, header, text) VALUES ('delete', old.id, old.header, old.text);
 END;
-CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
+CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE OF header, text ON chunks BEGIN
   INSERT INTO chunks_fts(chunks_fts, rowid, header, text) VALUES ('delete', old.id, old.header, old.text);
   INSERT INTO chunks_fts(rowid, header, text) VALUES (new.id, new.header, new.text);
 END;

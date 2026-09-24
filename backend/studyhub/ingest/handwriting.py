@@ -16,7 +16,7 @@ import anthropic
 
 from ..config import get_settings
 from ..store import file_abspath, find_course
-from ..sync import rebuild_course
+from ..sync import index_new_chunks, rebuild_course
 from .text import render_page_png
 
 log = logging.getLogger("studyhub.handwriting")
@@ -95,7 +95,8 @@ def transcribe_notes(conn: sqlite3.Connection, *, course: str | None = None, lim
     with ThreadPoolExecutor(max_workers=4) as pool:
         for chunk_id, text in pool.map(work, jobs):
             if text:
-                conn.execute("UPDATE chunks SET text = ?, transcribed = 1 WHERE id = ?", (text, chunk_id))
+                conn.execute("UPDATE chunks SET text = ?, transcribed = 1, embed_model = NULL WHERE id = ?",
+                             (text, chunk_id))
                 done += 1
         conn.commit()
     for row in rows:
@@ -106,4 +107,5 @@ def transcribe_notes(conn: sqlite3.Connection, *, course: str | None = None, lim
         conn.execute("UPDATE resources SET markdown = ? WHERE id = ?", (markdown, resource_id))
     for course_id in courses:
         rebuild_course(conn, course_id)  # transcriptions can reveal dates for lecture linking
+    index_new_chunks(conn, get_settings())
     return done

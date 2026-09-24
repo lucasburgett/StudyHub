@@ -1,4 +1,4 @@
-"""Command line: `studyhub check | sync | serve | demo | ask | schedule | transcribe`."""
+"""Command line: `studyhub check | sync | serve | demo | ask | schedule | index | transcribe`."""
 
 from __future__ import annotations
 
@@ -29,7 +29,28 @@ def cmd_check(args: argparse.Namespace) -> int:
             print(f"✗ {source:<11} {e}")
     agent = "ready" if settings.agent_ready else "needs ANTHROPIC_API_KEY"
     print(f"  {'claude':<11} {agent}")
+    from .embeddings import get_embedder
+
+    embedder = get_embedder(settings)
+    semantic = embedder.name if embedder else "off (keyword search only; set VOYAGE_API_KEY or install local embeddings)"
+    print(f"  {'search':<11} semantic: {semantic}")
     return 0 if ok else 1
+
+
+def cmd_index(args: argparse.Namespace) -> int:
+    from .embeddings import get_embedder, index_embeddings
+
+    embedder = get_embedder()
+    if embedder is None:
+        print("Semantic search is off. Set VOYAGE_API_KEY, or `pip install -e \".[local-embeddings]\"`.")
+        return 1
+    with session() as conn:
+        if args.rebuild:
+            conn.execute("UPDATE chunks SET embed_model = NULL")
+        n = index_embeddings(conn, embedder)
+        total = conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+    print(f"Embedded {n} chunks with {embedder.name}; {total} chunks in the index.")
+    return 0
 
 
 def cmd_sync(args: argparse.Namespace) -> int:
@@ -76,6 +97,9 @@ def cmd_demo(args: argparse.Namespace) -> int:
         conn.execute("DELETE FROM courses")
         conn.execute("DELETE FROM threads")
         load_demo(conn)
+        from .sync import index_new_chunks
+
+        index_new_chunks(conn, get_settings())
     print("Loaded the example data set (CS 231N). Run `studyhub serve` and open http://127.0.0.1:8000")
     return 0
 
@@ -193,6 +217,10 @@ def main(argv: list[str] | None = None) -> int:
     src.add_argument("--csv", type=Path, help="a CSV of number,date,title")
     src.add_argument("--show", action="store_true", help="print the imported schedule")
     p.set_defaults(fn=cmd_schedule)
+
+    p = sub.add_parser("index", help="build the semantic search index (runs after every sync anyway)")
+    p.add_argument("--rebuild", action="store_true", help="re-embed everything, e.g. after changing models")
+    p.set_defaults(fn=cmd_index)
 
     p = sub.add_parser("transcribe", help="transcribe handwritten note pages with Claude vision")
     p.add_argument("--course", help="only this course")

@@ -9,7 +9,7 @@ from studyhub import config
 from studyhub.db import connect, init_db
 
 SOURCE_VARS = ("CANVAS_BASE_URL", "CANVAS_TOKEN", "GRADESCOPE_EMAIL", "GRADESCOPE_PASSWORD", "GOODNOTES_DIR",
-               "GRANOLA_API_KEY", "COURSE_SITES", "ANTHROPIC_API_KEY")
+               "GRANOLA_API_KEY", "COURSE_SITES", "ANTHROPIC_API_KEY", "VOYAGE_API_KEY")
 
 
 @pytest.fixture(autouse=True)
@@ -18,6 +18,7 @@ def isolated_settings(tmp_path, monkeypatch) -> Iterator[None]:
     monkeypatch.setenv("STUDYHUB_DATA_DIR", str(tmp_path / "data"))
     for var in SOURCE_VARS:
         monkeypatch.setenv(var, "")
+    monkeypatch.setenv("STUDYHUB_EMBEDDINGS", "off")  # never download a model in tests
     monkeypatch.setattr(config.Settings, "model_config", {**config.Settings.model_config, "env_file": None})
     config.get_settings.cache_clear()
     yield

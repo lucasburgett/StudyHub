@@ -56,6 +56,22 @@ def rebuild_course(conn: sqlite3.Connection, course_id: int) -> None:
     conn.commit()
 
 
+def index_new_chunks(conn: sqlite3.Connection, settings: Settings, warnings: list[str] | None = None) -> int:
+    """Embed chunks that changed, for semantic search. A failure only costs semantic results."""
+    from .embeddings import get_embedder, index_embeddings
+
+    embedder = get_embedder(settings)
+    if embedder is None:
+        return 0
+    try:
+        return index_embeddings(conn, embedder)
+    except Exception as e:
+        log.warning("embedding failed: %s", e)
+        if warnings is not None:
+            warnings.append(f"Semantic search index not updated ({e}); keyword search still works.")
+        return 0
+
+
 def clear_demo_data(conn: sqlite3.Connection) -> None:
     """The first real sync replaces the example data set."""
     if get_meta(conn, "demo") == "1":
@@ -90,6 +106,7 @@ def run_source(source: str, settings: Settings | None = None) -> dict:
                 log.error("%s sync failed: %s\n%s", source, error, traceback.format_exc())
             for course_id in sorted(ctx.touched_courses):
                 rebuild_course(conn, course_id)
+            index_new_chunks(conn, settings, ctx.warnings)
             conn.execute(
                 "UPDATE sync_runs SET finished_at = ?, status = ?, items_changed = ?, warnings_json = ?, error = ?"
                 " WHERE id = ?",

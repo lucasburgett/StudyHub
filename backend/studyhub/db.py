@@ -29,8 +29,23 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+# Columns added after the first release: (table, column, definition).
+MIGRATIONS = [
+    ("chunks", "embedding", "BLOB"),
+    ("chunks", "embed_model", "TEXT"),
+]
+
+
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    for table, column, ddl in MIGRATIONS:
+        if column not in {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+    # Early databases re-indexed a chunk on every update, embeddings included.
+    trigger = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'chunks_au'").fetchone()
+    if trigger and "UPDATE OF" not in trigger["sql"]:
+        conn.execute("DROP TRIGGER chunks_au")
+        conn.executescript(SCHEMA)
     conn.commit()
 
 

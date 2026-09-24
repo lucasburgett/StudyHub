@@ -34,6 +34,10 @@ class Settings(BaseSettings):
 
     course_sites: str = ""
 
+    studyhub_embeddings: str = "auto"  # auto | voyage | local | off
+    voyage_api_key: str = ""
+    voyage_model: str = "voyage-4"
+
     studyhub_timezone: str = "America/Los_Angeles"
     studyhub_data_dir: str = ""
     studyhub_auto_sync: bool = True
