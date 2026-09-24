@@ -14,27 +14,18 @@ from .db import session
 
 def cmd_check(args: argparse.Namespace) -> int:
     """Log in to every configured source and say what's visible (Phase 0 of the plan)."""
-    from .connectors import get_connector
+    from .checks import check
 
     settings = get_settings()
-    ok = True
-    for source in SOURCES:
-        if not settings.configured(source):
-            print(f"  {source:<11} not set up (see backend/.env.example)")
+    failed = False
+    for target in (*SOURCES, "claude", "search"):
+        if target in SOURCES and not settings.configured(target):
+            print(f"  {target:<11} not set up (see backend/.env.example)")
             continue
-        try:
-            print(f"✓ {source:<11} {get_connector(source).check(settings)}")
-        except Exception as e:
-            ok = False
-            print(f"✗ {source:<11} {e}")
-    agent = "ready" if settings.agent_ready else "needs ANTHROPIC_API_KEY"
-    print(f"  {'claude':<11} {agent}")
-    from .embeddings import get_embedder
-
-    embedder = get_embedder(settings)
-    semantic = embedder.name if embedder else "off (keyword search only; set VOYAGE_API_KEY or install local embeddings)"
-    print(f"  {'search':<11} semantic: {semantic}")
-    return 0 if ok else 1
+        ok, message = check(target, settings)
+        failed |= not ok and target in SOURCES
+        print(f"{'✓' if ok else '✗'} {target:<11} {message}")
+    return 1 if failed else 0
 
 
 def cmd_index(args: argparse.Namespace) -> int:

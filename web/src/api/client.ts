@@ -4,11 +4,14 @@ import type {
   ChatEvent,
   ChatRequest,
   CourseDetail,
+  CheckResult,
   CourseSummary,
   Kind,
   ResourceDetail,
   ResourceSummary,
   SearchHit,
+  SettingsPage,
+  Source,
   Status,
   SyncStarted,
   ThreadDetail,
@@ -59,6 +62,7 @@ export const endpoints = {
   search: (q: string) => endpoint<SearchHit[]>('/api/search', { q, limit: 20 }),
   threads: (courseId: number | null) => endpoint<ThreadSummary[]>('/api/threads', { course_id: courseId }),
   thread: (id: number) => endpoint<ThreadDetail>(`/api/threads/${id}`),
+  settings: () => endpoint<SettingsPage>('/api/settings'),
 }
 
 async function errorFromResponse(res: Response): Promise<ApiError> {
@@ -94,14 +98,28 @@ export async function getJson<T>(ep: Endpoint<T>, signal?: AbortSignal): Promise
   return (await res.json()) as T
 }
 
-/** Starts a background sync of every configured source. */
-export async function startSync(): Promise<SyncStarted> {
-  const res = await send('/api/sync', {
-    method: 'POST',
+async function sendJson<T>(method: 'POST' | 'PUT', path: string, body: unknown): Promise<T> {
+  const res = await send(path, {
+    method,
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: '{}',
+    body: JSON.stringify(body),
   })
-  return (await res.json()) as SyncStarted
+  return (await res.json()) as T
+}
+
+/** Starts a background sync of one source, or of every configured source. */
+export function startSync(source?: Source): Promise<SyncStarted> {
+  return sendJson('POST', '/api/sync', source ? { source } : {})
+}
+
+/** Writes changed settings to backend/.env. `null` leaves a value as it is; '' clears it. */
+export function saveSettings(values: Record<string, string | null>): Promise<SettingsPage> {
+  return sendJson('PUT', '/api/settings', { values })
+}
+
+/** Tries a source's login (or the Claude key, or semantic search) with the saved settings. */
+export function checkConnection(target: string): Promise<CheckResult> {
+  return sendJson('POST', `/api/settings/check/${encodeURIComponent(target)}`, {})
 }
 
 export function isAbort(err: unknown): boolean {

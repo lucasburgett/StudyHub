@@ -5,7 +5,8 @@ import { MainView } from './components/MainView'
 import { Sidebar } from './components/shell/Sidebar'
 import { TopBar } from './components/shell/TopBar'
 import { AppContext, NO_CONTEXT, ReportContext, type ViewContext } from './lib/appContext'
-import { rememberTab, useRoute } from './lib/router'
+import { Link } from './components/ui'
+import { href, rememberTab, useRoute } from './lib/router'
 import { usePersistentState } from './lib/storage'
 import { DataVersion, useApi } from './lib/useApi'
 import { useSyncStatus, type SyncState } from './lib/useSyncStatus'
@@ -31,7 +32,7 @@ function Shell({ sync }: { sync: SyncState }) {
         ? `resource/${route.resourceId}`
         : route.name === 'assignment'
           ? `assignment/${route.assignmentId}`
-          : 'home'
+          : route.name
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 })
   }, [pageKey])
@@ -65,8 +66,8 @@ function Shell({ sync }: { sync: SyncState }) {
           {sync.status?.demo && (
             <div className="banner demo" role="note">
               <span>
-                You're looking at example data. Add your accounts to <code>backend/.env</code> and run a sync to replace
-                it.
+                You're looking at example data. <Link to={href.settings()}>Connect your accounts</Link> and run a sync to
+                replace it.
               </span>
             </div>
           )}

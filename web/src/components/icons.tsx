@@ -75,3 +75,12 @@ export const SendIcon = () => (
     <path d="M8 13V3.5M3.8 7.5L8 3.3l4.2 4.2" />
   </Svg>
 )
+
+export const SettingsIcon = () => (
+  <Svg>
+    <path d="M2.5 4h6M11.5 4h2M2.5 8h1.5M7 8h6.5M2.5 12h7.5M13 12h.5" />
+    <circle cx="10" cy="4" r="1.5" />
+    <circle cx="5.5" cy="8" r="1.5" />
+    <circle cx="11.5" cy="12" r="1.5" />
+  </Svg>
+)

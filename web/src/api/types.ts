@@ -227,3 +227,43 @@ export interface ThreadDetail {
   scope: ChatScope
   messages: ThreadMessage[]
 }
+
+// ---------------------------------------------------------------------------
+// Settings (GET/PUT /api/settings)
+
+export type SettingKind = 'text' | 'secret' | 'path' | 'lines' | 'select' | 'bool'
+
+export interface SettingField {
+  key: string
+  label: string
+  kind: SettingKind
+  help: string
+  placeholder: string
+  options: string[]
+  /** Always null for secrets: the server never sends them back. */
+  value: string | null
+  is_set: boolean
+  /** Secrets only: "…ab12" when set. */
+  hint?: string | null
+  /** Set by an environment variable, which wins over backend/.env. */
+  locked: boolean
+}
+
+/** A source ("canvas", …) or "claude" / "search" / "general". */
+export interface SettingGroup {
+  id: string
+  title: string
+  intro: string
+  checkable: boolean
+  fields: SettingField[]
+}
+
+export interface SettingsPage {
+  env_file: string
+  groups: SettingGroup[]
+}
+
+export interface CheckResult {
+  ok: boolean
+  message: string
+}

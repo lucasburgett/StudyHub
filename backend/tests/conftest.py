@@ -17,7 +17,7 @@ def isolated_settings(tmp_path, monkeypatch) -> Iterator[None]:
     """Every test gets its own data dir, and never reads the developer's backend/.env."""
     monkeypatch.setenv("STUDYHUB_DATA_DIR", str(tmp_path / "data"))
     for var in SOURCE_VARS:
-        monkeypatch.setenv(var, "")
+        monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("STUDYHUB_EMBEDDINGS", "off")  # never download a model in tests
     monkeypatch.setattr(config.Settings, "model_config", {**config.Settings.model_config, "env_file": None})
     config.get_settings.cache_clear()

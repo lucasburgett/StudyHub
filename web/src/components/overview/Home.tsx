@@ -114,7 +114,7 @@ export function Home() {
   if (courses.data.length === 0) {
     return (
       <EmptyState title="No classes yet">
-        Connect a source in <code>backend/.env</code>, then press Sync now.
+        <Link to={href.settings()}>Connect a source in Settings</Link>, then press Sync now.
       </EmptyState>
     )
   }

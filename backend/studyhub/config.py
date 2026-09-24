@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     studyhub_timezone: str = "America/Los_Angeles"
     studyhub_data_dir: str = ""
     studyhub_auto_sync: bool = True
+    # Extra hostnames the server answers to, comma-separated (only needed if you host it somewhere).
+    studyhub_allowed_hosts: str = ""
 
     @property
     def data_dir(self) -> Path:
@@ -77,6 +79,11 @@ class Settings(BaseSettings):
             "granola": bool(self.granola_api_key),
             "web": bool(self.sites),
         }[source]
+
+    @property
+    def allowed_hosts(self) -> set[str]:
+        extra = {h.strip().lower() for h in self.studyhub_allowed_hosts.split(",") if h.strip()}
+        return {"127.0.0.1", "localhost", "::1"} | extra
 
     @property
     def agent_ready(self) -> bool:

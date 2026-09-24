@@ -49,7 +49,7 @@ export function SyncStatus() {
   const disabledReason = statusError
     ? "The backend isn't reachable"
     : status && !anyConfigured
-      ? 'No sources configured in backend/.env'
+      ? 'No sources connected yet. Add them in Settings.'
       : undefined
 
   return (

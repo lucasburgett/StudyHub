@@ -9,6 +9,7 @@ import { CourseFrame } from './course/CourseFrame'
 import { ResourceListTab } from './course/ResourceListTab'
 import { TimelineTab } from './course/TimelineTab'
 import { Home } from './overview/Home'
+import { SettingsView } from './settings/SettingsView'
 import { ErrorState, Link, Loading } from './ui'
 import { AssignmentView } from './viewer/AssignmentView'
 import { ResourceViewer } from './viewer/ResourceViewer'
@@ -16,6 +17,11 @@ import { ResourceViewer } from './viewer/ResourceViewer'
 function HomeRoute() {
   useReportContext(NO_CONTEXT)
   return <Home />
+}
+
+function SettingsRoute() {
+  useReportContext(NO_CONTEXT)
+  return <SettingsView />
 }
 
 function TabContent({ courseId, tab }: { courseId: number; tab: Tab }) {
@@ -113,5 +119,7 @@ export function MainView({ route }: { route: Route }) {
       return <ResourceRoute resourceId={route.resourceId} page={route.page} seconds={route.seconds} />
     case 'assignment':
       return <AssignmentRoute assignmentId={route.assignmentId} question={route.question} />
+    case 'settings':
+      return <SettingsRoute />
   }
 }

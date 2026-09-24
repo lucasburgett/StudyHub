@@ -1,5 +1,5 @@
 import { href } from '../../lib/router'
-import { ChatIcon, MenuIcon } from '../icons'
+import { ChatIcon, MenuIcon, SettingsIcon } from '../icons'
 import { Link } from '../ui'
 import { SearchBox } from './SearchBox'
 import { SyncStatus } from './SyncStatus'
@@ -21,6 +21,9 @@ export function TopBar({ chatOpen, onToggleChat, onToggleNav }: TopBarProps) {
       </Link>
       <SearchBox />
       <SyncStatus />
+      <Link to={href.settings()} className="icon-btn" aria-label="Settings" title="Settings">
+        <SettingsIcon />
+      </Link>
       <button
         type="button"
         className={`btn small chat-toggle${chatOpen ? ' on' : ''}`}

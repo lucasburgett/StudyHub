@@ -10,12 +10,12 @@ from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from typing import Any, AsyncIterator, Iterator
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import sync
+from . import checks, envfile, sync
 from .agent.chat import run_chat
 from .citations import citation, resource_locator
 from .config import REPO_DIR, SOURCES, get_settings
@@ -38,6 +38,32 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="StudyHub", docs_url="/api/docs", openapi_url="/api/openapi.json", lifespan=lifespan)
+
+
+def _hostname(value: str) -> str:
+    """"127.0.0.1:8000" -> "127.0.0.1", "[::1]:8000" -> "::1", "http://localhost:5173" -> "localhost"."""
+    value = value.split("://", 1)[-1].split("/", 1)[0].lower()
+    if value.startswith("["):
+        return value[1:].split("]", 1)[0]
+    return value.rsplit(":", 1)[0] if value.count(":") == 1 else value
+
+
+@app.middleware("http")
+async def local_only(request: Request, call_next):
+    """Answer only requests addressed to this machine, and changes only from its own pages.
+
+    The Host check stops DNS rebinding (a web page reading your courses through a hostname
+    that resolves to 127.0.0.1). The Origin check stops other sites you have open from posting
+    here: changing settings, starting syncs, or spending API credits through chat.
+    """
+    allowed = get_settings().allowed_hosts
+    if _hostname(request.headers.get("host", "")) not in allowed:
+        return JSONResponse({"detail": "StudyHub only answers requests addressed to localhost."}, status_code=403)
+    if request.method not in ("GET", "HEAD", "OPTIONS"):
+        origin = request.headers.get("origin")
+        if (origin and _hostname(origin) not in allowed) or request.headers.get("sec-fetch-site") == "cross-site":
+            return JSONResponse({"detail": "Requests from other websites aren't allowed."}, status_code=403)
+    return await call_next(request)
 
 
 def db() -> Iterator[sqlite3.Connection]:
@@ -129,6 +155,36 @@ def start_sync(body: SyncRequest | None = None) -> dict:
         if not get_settings().configured(source):
             raise HTTPException(400, f"{source} isn't set up in backend/.env")
     return {"started": sync.start_background(wanted)}
+
+
+# ---------------------------------------------------------------- settings
+
+@app.get("/api/settings")
+def settings_page() -> dict:
+    return envfile.describe()
+
+
+class SettingsUpdate(BaseModel):
+    values: dict[str, str | None]
+
+
+@app.put("/api/settings")
+def save_settings(body: SettingsUpdate) -> dict:
+    try:
+        updates = envfile.validate(body.values)
+    except envfile.SettingsError as e:
+        raise HTTPException(400, str(e)) from e
+    if updates:
+        envfile.write_env(updates)
+    return envfile.describe()
+
+
+@app.post("/api/settings/check/{target}")
+def check_connection(target: str) -> dict:
+    if target not in checks.TARGETS:
+        raise HTTPException(404, f"Nothing to check called {target}")
+    ok, message = checks.check(target)
+    return {"ok": ok, "message": message}
 
 
 # ---------------------------------------------------------------- courses

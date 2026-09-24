@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, endpoints, getJson, isAbort, startSync } from '../api/client'
-import type { Status } from '../api/types'
+import type { Source, Status } from '../api/types'
 import { toApiError } from './useApi'
 
 const POLL_RUNNING_MS = 2000
@@ -14,7 +14,7 @@ export interface SyncState {
   dataVersion: number
   syncing: boolean
   syncError: string | null
-  syncNow: () => Promise<void>
+  syncNow: (source?: Source) => Promise<void>
   refresh: () => void
 }
 
@@ -68,13 +68,13 @@ export function useSyncStatus(): SyncState {
 
   const refresh = useCallback(() => setPollKey((k) => k + 1), [])
 
-  const syncNow = useCallback(async () => {
+  const syncNow = useCallback(async (source?: Source) => {
     setRequesting(true)
     setSyncError(null)
     try {
-      const { started } = await startSync()
+      const { started } = await startSync(source)
       if (started.length > 0) awaitingSync.current = true
-      else setSyncError('No sources are configured. Add accounts to backend/.env.')
+      else if (!source) setSyncError('No sources are connected yet. Add them in Settings.')
     } catch (err) {
       setSyncError(toApiError(err).message)
     } finally {

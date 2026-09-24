@@ -6,7 +6,7 @@ from studyhub.api import app
 
 @pytest.fixture
 def client(demo):
-    return TestClient(app)
+    return TestClient(app, base_url="http://127.0.0.1:8000")
 
 
 def test_status_and_courses(client):

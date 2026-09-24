@@ -41,8 +41,10 @@ backend/.venv/bin/studyhub serve
 
 ## Connecting your accounts
 
-Fill in `backend/.env` (see `backend/.env.example`), then run `studyhub check` to confirm
-each login works and `studyhub sync` to pull everything. While `studyhub serve` runs it keeps
+Open **Settings** in the app (the sliders icon in the top bar) and fill in the sources you use;
+**Test connection** confirms each login. The page writes `backend/.env`, which you can also edit by
+hand (see `backend/.env.example`); `studyhub check` runs the same tests from the terminal and
+`studyhub sync` pulls everything. While `studyhub serve` runs it keeps
 syncing on its own (Canvas and Granola every 30 minutes, GoodNotes every 10, Gradescope twice a
 day, course websites every 6 hours), and the **Sync now** button pulls immediately.
 
@@ -103,6 +105,9 @@ Canvas / Gradescope / GoodNotes PDFs / Granola / course websites
   and the server drops any the agent didn't actually get from a tool.
 - **Deadlines and grades come from tables, not search.** A Gradescope assignment that matches a
   Canvas one replaces it (Gradescope has the grade; Canvas lends the description).
+- **Only this computer can talk to it.** The server answers requests addressed to `localhost`
+  only, and refuses changes coming from other websites, so a page you have open elsewhere can't
+  read your courses, change your settings or spend your API credits.
 - **The agent can't change anything.** No tool writes, posts or submits, so instructions hidden
   in course content have nothing to trigger.
 

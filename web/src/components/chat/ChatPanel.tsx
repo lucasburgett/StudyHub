@@ -2,9 +2,11 @@ import { useCallback, useState } from 'react'
 import { endpoints } from '../../api/client'
 import type { ChatScope } from '../../api/types'
 import { useApp, type ViewContext } from '../../lib/appContext'
+import { href } from '../../lib/router'
 import { formatAgo } from '../../lib/format'
 import { useApi } from '../../lib/useApi'
 import { CloseIcon } from '../icons'
+import { Link } from '../ui'
 import { Composer } from './Composer'
 import { Messages } from './Messages'
 import { useChat } from './useChat'
@@ -128,7 +130,7 @@ export function ChatPanel({ context, open, onClose }: ChatPanelProps) {
 
       {status && !status.agent_ready && (
         <p className="chat-note">
-          Chat needs <code>ANTHROPIC_API_KEY</code> in <code>backend/.env</code>. Add it and restart the backend.
+          Chat needs a Claude API key. <Link to={href.settings()}>Add it in Settings</Link>.
         </p>
       )}
       {sync.statusError && <p className="chat-note">Chat is unavailable while the backend can't be reached.</p>}

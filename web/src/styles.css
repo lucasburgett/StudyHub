@@ -2140,3 +2140,141 @@ tr.clickable:hover td {
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------ settings */
+
+.settings {
+  max-width: 760px;
+  display: grid;
+  gap: 16px;
+}
+
+.setting-group > header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+}
+
+.setting-group > header > span {
+  font-size: 0.82rem;
+}
+
+.setting-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.setting-field {
+  display: grid;
+  gap: 4px;
+}
+
+.setting-field label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.setting-field input[type='text'],
+.setting-field input[type='password'],
+.setting-field select,
+.setting-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 0.84rem;
+}
+
+.setting-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.setting-field :disabled {
+  opacity: 0.7;
+}
+
+.setting-field.kind-bool {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.setting-field.kind-bool input {
+  order: -1;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.setting-field.kind-bool .field-help {
+  grid-column: 1 / -1;
+}
+
+.field-help {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  max-width: 70ch;
+}
+
+.secret-saved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--ink-2);
+}
+
+.setting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.btn.primary:disabled {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-3);
+}
+
+.ok-text {
+  color: var(--ok);
+  font-size: 0.86rem;
+}
+
+.bad-text {
+  color: var(--bad);
+  font-size: 0.86rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.sync-warnings {
+  margin: 0;
+  padding: 8px 12px 8px 28px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--warn);
+  font-size: 0.84rem;
+  display: grid;
+  gap: 4px;
+}

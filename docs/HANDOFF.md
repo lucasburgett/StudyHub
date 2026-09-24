@@ -42,12 +42,15 @@ hosts. Your first job is to make it work on real data (section below).
 | Agent: 8 read-only tools, streaming, citation validation | Built. Tested with a scripted model and with the real SDK against a local stand-in server | `agent/` |
 | Web app: timeline, viewer, chat, search, sync status | Built; checked end to end in headless Chromium on example data | `web/src/` |
 | Auto-sync while serving, CI, Makefile | Built | `sync.py`, `.github/workflows/ci.yml`, `Makefile` |
+| Settings page (writes `backend/.env`, Test connection per source) | Built; used in a real browser | `envfile.py`, `checks.py`, `web/src/components/settings/` |
+| Localhost-only guard (Host and Origin checks) | Built | `api.py` (`local_only`) |
 
 ## First task: make it work on real data
 
 Do this with Lucas at the keyboard; it needs his credentials.
 
-1. `make setup`. This creates `backend/.env`. Fill in what he has. Never commit `.env`, and
+1. `make setup`, `make serve`, then open **Settings** (the sliders icon) and fill in what he has;
+   **Test connection** checks each one. It writes `backend/.env`; editing that file by hand works too. Never commit `.env`, and
    never paste secrets into files that are tracked.
    - He shared a Canvas token in a chat on 2026-09-24. Suggest he revoke it (Canvas →
      Account → Settings → Approved Integrations) and create a new one with an expiry date for
@@ -121,9 +124,8 @@ emails, grades or tokens), and run `make test`.
    works on every plan. On the free plan it only returns AI notes (no raw transcripts), and
    only for the last 30 days, so sync must run at least weekly.
 3. **Gradescope graded PDFs,** so rubric marks drawn on the page can be read (Claude vision).
-4. **Settings in the UI.** Today everything is set up in `.env` and the CLI. Useful additions:
-   course sites, a schedule import button, a transcription button, and showing sync warnings
-   inline.
+4. **More in the UI.** Settings is done. Still CLI-only: schedule import and handwriting
+   transcription. Buttons for both would be useful.
 5. **Ed Discussion** (Stanford CS courses use it heavily). It has user API tokens; good
    candidate for a sixth source. Ask first.
 6. **Smaller:**
@@ -155,6 +157,9 @@ emails, grades or tokens), and run `make test`.
     (`agent/chat.py`).
   - Locators outlive a sync only while resource IDs are stable. Upserts keep IDs, keyed on
     `(source, external_id)`.
+- **Local only.** `api.local_only` refuses requests whose `Host` isn't localhost (DNS rebinding)
+  and non-GET requests from other origins (CSRF). Keep it in front of every endpoint, especially
+  now that `PUT /api/settings` writes credentials.
 - **Agent tools are read-only.** That's the prompt-injection defense for course content. Don't
   add tools that write, post or submit without talking to Lucas.
 - **Chat history is append-only.** `messages.api_json` stores the raw API turns, including

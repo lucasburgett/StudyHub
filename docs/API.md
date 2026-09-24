@@ -4,6 +4,10 @@ The backend (FastAPI, `backend/`) serves JSON under `/api`. In development the
 web app runs on Vite (port 5173) and proxies `/api` to the backend on port 8000.
 In production the backend also serves the built web app from `web/dist`.
 
+The server only answers requests whose `Host` is `127.0.0.1`, `localhost` or `::1` (plus any
+names in `STUDYHUB_ALLOWED_HOSTS`), and rejects non-GET requests whose `Origin` is another site
+or whose `Sec-Fetch-Site` is `cross-site`. That keeps other web pages from reading or changing it.
+
 All timestamps are ISO 8601 strings in UTC (`2026-09-24T17:30:00Z`). Dates
 without a time are `YYYY-MM-DD`. IDs are integers unless noted.
 
@@ -255,3 +259,40 @@ map; the server never sends citations a tool did not return.
   }[];
 }
 ```
+
+## Settings
+
+`GET /api/settings` describes the editable parts of `backend/.env`, grouped for the settings page.
+Secrets are never returned: `value` is `null`, `is_set` says whether one is saved, and `hint` shows
+its last four characters.
+
+```ts
+{
+  env_file: string;            // absolute path of backend/.env
+  groups: {
+    id: string;                // a Source, or "claude" | "search" | "general"
+    title: string;
+    intro: string;
+    checkable: boolean;        // has a Test connection button
+    fields: {
+      key: string;             // the .env variable, e.g. "CANVAS_TOKEN"
+      label: string;
+      kind: "text" | "secret" | "path" | "lines" | "select" | "bool";
+      help: string;
+      placeholder: string;
+      options: string[];       // for "select"
+      value: string | null;    // null for secrets; "lines" values are newline-separated
+      is_set: boolean;
+      hint?: string | null;    // secrets: "…ab12"
+      locked: boolean;         // set by an environment variable, which overrides the file
+    }[];
+  }[];
+}
+```
+
+`PUT /api/settings` with `{ "values": { "CANVAS_TOKEN": "…", "GRANOLA_API_KEY": null } }` writes the
+given keys (`null` = leave as is, `""` = clear) and returns the same shape as GET. Invalid values
+return 400 with a `detail` message. Changes apply without a restart.
+
+`POST /api/settings/check/{target}` (a Source, `claude` or `search`) tries the saved settings and
+returns `{ "ok": boolean, "message": string }`.
