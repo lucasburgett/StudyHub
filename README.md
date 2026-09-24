@@ -16,24 +16,27 @@ the Claude API.
 
 ## Quick start
 
-Requirements: Python 3.11+, Node 20+.
+Requirements: Python 3.11+, Node 22, `make` (on macOS: `xcode-select --install`).
 
 ```bash
-cd backend
-python -m venv .venv && .venv/bin/pip install -e ".[dev]"   # or: uv venv && uv pip install -e ".[dev]"
-.venv/bin/studyhub init        # creates backend/.env and the database
-.venv/bin/studyhub demo        # optional: load an example CS 231N data set to look around
-
-cd ../web && npm install && npm run build
-
-cd ../backend && .venv/bin/studyhub serve
-# open http://127.0.0.1:8000
+make setup     # installs everything, creates backend/.env and the database, builds the web app
+make demo      # optional: load an example CS 231N data set to look around
+make serve     # open http://127.0.0.1:8000
 ```
 
 The example data set is clearly marked in the app, and your first real sync replaces it.
+`make help` lists the other tasks (`make dev` runs the backend with reload plus the Vite dev
+server on http://localhost:5173; `make test` runs the tests, lint and build).
 
-For development, run `studyhub serve --reload` in `backend/` and `npm run dev` in `web/`
-(Vite on http://localhost:5173, proxying `/api` to the backend).
+<details><summary>Without make</summary>
+
+```bash
+python3 -m venv backend/.venv && backend/.venv/bin/pip install -e "./backend[dev]"
+backend/.venv/bin/studyhub init
+(cd web && npm install && npm run build)
+backend/.venv/bin/studyhub serve
+```
+</details>
 
 ## Connecting your accounts
 
@@ -57,7 +60,7 @@ match). Canvas defines the course list when it's connected.
 
 ## Commands
 
-Run from `backend/` (or put `backend/.venv/bin` on your `PATH`):
+Run as `backend/.venv/bin/studyhub …` (or put `backend/.venv/bin` on your `PATH`):
 
 | Command | What it does |
 |---|---|
@@ -105,8 +108,10 @@ Canvas / Gradescope / GoodNotes PDFs / Granola / course websites
 ## Tests
 
 ```bash
-cd backend && .venv/bin/pytest
+make test
 ```
+
+GitHub Actions runs the same checks on every push (`.github/workflows/ci.yml`).
 
 The connectors are tested against fake Canvas, Granola and Gradescope responses, the chat loop
 against a scripted model and against the real SDK talking to a local stand-in server.
