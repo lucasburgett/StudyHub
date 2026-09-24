@@ -11,6 +11,9 @@ from pathlib import Path
 from .config import BACKEND_DIR, SOURCES, get_settings
 from .db import session
 
+NO_CLAUDE = ("Chat needs Claude: log in to Claude Code (`claude auth login`) to use your Claude subscription, "
+             "or set ANTHROPIC_API_KEY in backend/.env.")
+
 
 def cmd_check(args: argparse.Namespace) -> int:
     """Log in to every configured source and say what's visible (Phase 0 of the plan)."""
@@ -101,7 +104,7 @@ def cmd_ask(args: argparse.Namespace) -> int:
     from .sync import run_source
 
     if not get_settings().agent_ready:
-        print("Set ANTHROPIC_API_KEY in backend/.env first.")
+        print(NO_CLAUDE)
         return 1
     with session() as conn:
         scope = {}
@@ -122,8 +125,8 @@ def cmd_ask(args: argparse.Namespace) -> int:
 def cmd_transcribe(args: argparse.Namespace) -> int:
     from .ingest.handwriting import transcribe_notes
 
-    if not get_settings().agent_ready:
-        print("Set ANTHROPIC_API_KEY in backend/.env first.")
+    if not get_settings().api_key_set:
+        print("Transcription needs ANTHROPIC_API_KEY in backend/.env; it doesn't run on a Claude subscription yet.")
         return 1
     with session() as conn:
         done = transcribe_notes(conn, course=args.course, limit=args.limit, dry_run=args.dry_run)
@@ -144,7 +147,7 @@ def cmd_schedule(args: argparse.Namespace) -> int:
             if args.csv:
                 rows = schedule.read_csv(args.csv)
             else:
-                if not get_settings().agent_ready:
+                if not get_settings().api_key_set:
                     print("Reading a schedule needs ANTHROPIC_API_KEY in backend/.env (or use --csv).")
                     return 1
                 material = schedule.fetch_page(args.url) if args.url else schedule.course_material(conn, course_id)
@@ -167,8 +170,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
     from .evals import CaseError, load_cases, run_eval
 
     settings = get_settings()
-    if not settings.agent_ready:
-        print("Evals call Claude: add an API key in Settings or backend/.env first.")
+    backend = settings.agent_backend
+    if backend is None:
+        print(NO_CLAUDE)
         return 1
     with session() as conn:
         try:
@@ -180,7 +184,10 @@ def cmd_eval(args: argparse.Namespace) -> int:
         cases = [c for c in cases if c.id in args.case]
     n = len(cases) * args.reps
     print(f"{n} questions to ask ({len(cases)} cases × {args.reps} reps) with {settings.model}, effort {args.effort}.")
-    print("Each takes a few Claude requests; expect very roughly $0.05–0.40 per question at list prices.")
+    if backend == "api":
+        print("Each takes a few Claude requests; expect very roughly $0.05–0.40 per question at list prices.")
+    else:
+        print("They run on your Claude subscription and count against its usage limits.")
     if not args.yes and input("Run them? [y/N] ").strip().lower() not in ("y", "yes"):
         return 1
     out = args.out or settings.data_dir / "evals" / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -220,6 +227,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    logging.getLogger("claude_agent_sdk").setLevel(logging.WARNING)
     parser = argparse.ArgumentParser(prog="studyhub", description="Your classes in one place.")
     sub = parser.add_subparsers(dest="command", required=True)
 

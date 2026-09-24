@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import sqlite3
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
 import anthropic
@@ -74,6 +75,79 @@ def _new_thread(conn: sqlite3.Connection, message: str, scope: dict) -> int:
     ).lastrowid
 
 
+@dataclass
+class Turn:
+    """One question in a thread, as both chat loops see it."""
+
+    thread_id: int
+    message_id: int             # the stored user message
+    prompt: str                 # what Claude gets: the context block, then the question
+    course_map: str
+    citations: dict[str, dict]  # locators Claude may cite so far
+    map_citations: dict[str, dict] = field(default_factory=dict)
+
+
+def begin_turn(conn: sqlite3.Connection, message: str, thread_id: int | None, scope: dict | None) -> Turn:
+    """Find or start the thread, and store the question."""
+    scope = {k: v for k, v in (scope or {}).items() if v is not None}
+    if thread_id is None or not conn.execute("SELECT 1 FROM threads WHERE id = ?", (thread_id,)).fetchone():
+        thread_id = _new_thread(conn, message, scope)
+    conn.commit()
+    citations: dict[str, dict] = {}
+    map_citations: dict[str, dict] = {}
+    cmap = course_map(conn, map_citations)
+    prompt = f"{context_block(conn, scope, citations)}\n\n{message}"
+    now = now_iso()
+    message_id = conn.execute(
+        "INSERT INTO messages(thread_id, role, text, api_json, created_at) VALUES (?, 'user', ?, ?, ?)",
+        (thread_id, message, json.dumps([{"role": "user", "content": prompt}]), now),
+    ).lastrowid
+    conn.execute("UPDATE threads SET updated_at = ? WHERE id = ?", (now, thread_id))
+    conn.commit()
+    return Turn(thread_id, message_id, prompt, cmap, citations, map_citations)
+
+
+def finish_turn(
+    conn: sqlite3.Connection,
+    turn: Turn,
+    texts: list[str],
+    *,
+    error: str | None,
+    error_kind: str | None,
+    api_turns: list[dict],
+    tool_log: list[dict],
+    backend: str,
+    done: dict[str, Any],
+    session_id: str | None = None,
+) -> Iterator[Event]:
+    """Store the answer (with a note if it failed) and send the closing events."""
+    text = "\n\n".join(texts)
+    # Locators the model took from the course map are valid too.
+    late = {loc: turn.map_citations[loc] for loc in markers(text)
+            if loc not in turn.citations and loc in turn.map_citations}
+    if late:
+        turn.citations.update(late)
+        yield "sources", {"citations": late}
+
+    if error:
+        note = f"_{error}_"
+        yield "text", {"delta": ("\n\n" if text else "") + note}
+        text = f"{text}\n\n{note}" if text else note
+    message_id = conn.execute(
+        "INSERT INTO messages(thread_id, role, text, api_json, tools_json, citations_json, created_at)"
+        " VALUES (?, 'assistant', ?, ?, ?, ?, ?)",
+        (turn.thread_id, text, json.dumps(api_turns), json.dumps(tool_log),
+         json.dumps({k: v for k, v in turn.citations.items() if k in set(markers(text))}), now_iso()),
+    ).lastrowid
+    # An API turn isn't in any Claude Code session, so it ends the thread's session.
+    conn.execute("UPDATE threads SET updated_at = ?, backend = ?, agent_session_id = ? WHERE id = ?",
+                 (now_iso(), backend, session_id, turn.thread_id))
+    conn.commit()
+    if error:
+        yield "error", {"message": error, "kind": error_kind}
+    yield "done", {"message_id": message_id, **done}
+
+
 def run_chat(
     conn: sqlite3.Connection,
     message: str,
@@ -83,32 +157,40 @@ def run_chat(
     client: anthropic.Anthropic | None = None,
     run_sync: Callable[[str], dict] | None = None,
     effort: str = "medium",
+    backend: str | None = None,
+) -> Iterator[Event]:
+    """Answer one message. A `client` means the API; otherwise `backend`, else the configured backend."""
+    if client is None and (backend or get_settings().agent_backend) == "subscription":
+        from .subscription import run_chat_subscription
+
+        return run_chat_subscription(conn, message, thread_id=thread_id, scope=scope, run_sync=run_sync,
+                                     effort=effort)
+    return _run_chat_api(conn, message, thread_id=thread_id, scope=scope, client=client, run_sync=run_sync,
+                         effort=effort)
+
+
+def _run_chat_api(
+    conn: sqlite3.Connection,
+    message: str,
+    *,
+    thread_id: int | None,
+    scope: dict | None,
+    client: anthropic.Anthropic | None,
+    run_sync: Callable[[str], dict] | None,
+    effort: str,
 ) -> Iterator[Event]:
     settings = get_settings()
-    scope = {k: v for k, v in (scope or {}).items() if v is not None}
-    if thread_id is None or not conn.execute("SELECT 1 FROM threads WHERE id = ?", (thread_id,)).fetchone():
-        thread_id = _new_thread(conn, message, scope)
-    conn.commit()
-    yield "thread", {"thread_id": thread_id}
-
-    citations: dict[str, dict] = {}
-    map_citations: dict[str, dict] = {}
-    system = [
-        {"type": "text", "text": INSTRUCTIONS},
-        {"type": "text", "text": course_map(conn, map_citations), "cache_control": {"type": "ephemeral"}},
-    ]
-    user_turn = {"role": "user", "content": f"{context_block(conn, scope, citations)}\n\n{message}"}
+    turn = begin_turn(conn, message, thread_id, scope)
+    yield "thread", {"thread_id": turn.thread_id}
+    citations = turn.citations
     if citations:
         yield "sources", {"citations": dict(citations)}
-    now = now_iso()
-    conn.execute(
-        "INSERT INTO messages(thread_id, role, text, api_json, created_at) VALUES (?, 'user', ?, ?, ?)",
-        (thread_id, message, json.dumps([user_turn]), now),
-    )
-    conn.execute("UPDATE threads SET updated_at = ? WHERE id = ?", (now, thread_id))
-    conn.commit()
+    system = [
+        {"type": "text", "text": INSTRUCTIONS},
+        {"type": "text", "text": turn.course_map, "cache_control": {"type": "ephemeral"}},
+    ]
 
-    history = _history(conn, thread_id)  # includes the user turn just stored
+    history = _history(conn, turn.thread_id)  # includes the user turn just stored
     toolbox = Toolbox(conn, run_sync)
     tools = toolbox.definitions()
     client = client or make_client()
@@ -207,25 +289,6 @@ def run_chat(
     else:
         error, error_kind = "Stopped after too many tool calls. Try a narrower question.", "steps"
 
-    text = "\n\n".join(texts)
-    # Locators the model took from the course map are valid too.
-    late = {loc: map_citations[loc] for loc in markers(text) if loc not in citations and loc in map_citations}
-    if late:
-        citations.update(late)
-        yield "sources", {"citations": late}
-
-    if error:
-        note = f"_{error}_"
-        yield "text", {"delta": ("\n\n" if text else "") + note}
-        text = f"{text}\n\n{note}" if text else note
-    message_id = conn.execute(
-        "INSERT INTO messages(thread_id, role, text, api_json, tools_json, citations_json, created_at)"
-        " VALUES (?, 'assistant', ?, ?, ?, ?, ?)",
-        (thread_id, text, json.dumps(_complete_turns(new_turns)), json.dumps(tool_log),
-         json.dumps({k: v for k, v in citations.items() if k in set(markers(text))}), now_iso()),
-    ).lastrowid
-    conn.execute("UPDATE threads SET updated_at = ? WHERE id = ?", (now_iso(), thread_id))
-    conn.commit()
-    if error:
-        yield "error", {"message": error, "kind": error_kind}
-    yield "done", {"message_id": message_id, "usage": usage, "model": served_model, "stop_reason": stop_reason}
+    yield from finish_turn(conn, turn, texts, error=error, error_kind=error_kind,
+                           api_turns=_complete_turns(new_turns), tool_log=tool_log, backend="api",
+                           done={"usage": usage, "model": served_model, "stop_reason": stop_reason})

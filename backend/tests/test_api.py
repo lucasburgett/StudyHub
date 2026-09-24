@@ -55,9 +55,10 @@ def test_search_highlights(client):
     assert {"locator", "label", "page", "seconds"} <= hits[0].keys()
 
 
-def test_chat_needs_a_key(client):
+def test_chat_needs_claude(client):
     resp = client.post("/api/chat", json={"message": "hi"})
-    assert resp.status_code == 400 and "ANTHROPIC_API_KEY" in resp.json()["detail"]
+    detail = resp.json()["detail"]
+    assert resp.status_code == 400 and "claude auth login" in detail and "API key" in detail
 
 
 def test_sync_rejects_unconfigured_source(client):

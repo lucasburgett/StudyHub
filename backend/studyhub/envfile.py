@@ -39,8 +39,14 @@ class Group:
 
 GROUPS: tuple[Group, ...] = (
     Group("claude", "Claude", (
+        Field("STUDYHUB_AGENT", "Chat runs on", "select",
+              "Subscription uses the Claude plan Claude Code is logged in with (run “claude auth login” in a "
+              "terminal) and counts against its usage limits. API uses the key below and bills per request. "
+              "Auto picks the key when one is set.",
+              options=("auto", "subscription", "api")),
         Field("ANTHROPIC_API_KEY", "API key", "secret",
-              "From console.anthropic.com → API keys. Chat, schedule import and handwriting transcription use it."),
+              "From console.anthropic.com → API keys. Schedule import and handwriting transcription need it; "
+              "chat doesn't if you use your subscription."),
     ), intro="Answers your questions and reads your handwriting."),
     Group("canvas", "Canvas", (
         Field("CANVAS_BASE_URL", "Canvas address", placeholder="https://canvas.stanford.edu"),

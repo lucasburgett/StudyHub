@@ -12,8 +12,9 @@ came from (a slide page, a minute of a lecture recording, a page of handwritten 
 
 Everything runs on your own computer, and course files, grades and credentials are stored
 there. Two things leave it: what the agent reads to answer a question (and note pages you ask it
-to transcribe) goes to the Claude API, and if you turn on Voyage for semantic search, course text
-goes to Voyage to be embedded.
+to transcribe) goes to Claude, either through the Claude API or through Claude Code on your
+Claude subscription; and if you turn on Voyage for semantic search, course text goes to Voyage to
+be embedded.
 
 ## Quick start
 
@@ -50,7 +51,7 @@ day, course websites every 6 hours), and the **Sync now** button pulls immediate
 
 | Source | What to set up | Notes |
 |---|---|---|
-| **Claude** | `ANTHROPIC_API_KEY` | Needed for chat and handwriting transcription. The agent uses `claude-opus-5`. |
+| **Claude** | Either log in to Claude Code with your Claude plan (`claude auth login` in a terminal), or set `ANTHROPIC_API_KEY` | Chat runs on whichever you have; with both, the key wins unless `STUDYHUB_AGENT=subscription` (Settings → Claude → **Chat runs on**). On a subscription, questions count against the plan's usage limits, like Claude Code does. Handwriting transcription and schedule import still need the API key. The agent uses `claude-opus-5`. |
 | **Canvas** | `CANVAS_TOKEN` from Canvas → Account → Settings → **+ New access token**. Give it an expiry date. | A token can do anything your account can, so keep `.env` private. StudyHub only reads. |
 | **Gradescope** | `GRADESCOPE_EMAIL` and `GRADESCOPE_PASSWORD` | No official API; this uses the unofficial `gradescopeapi` client. With Stanford SSO, set a Gradescope password first via **Forgot password**. Per-question feedback is read best-effort; totals always sync. |
 | **GoodNotes** | Turn on **Settings → Automatic Backup**, choose Google Drive and **PDF**. Set `GOODNOTES_DIR` to the local copy of that folder (Google Drive for Desktop). | Keep one GoodNotes folder per class named after the course code, e.g. `CS 231N`. Write the date (`9/24`) at the top of each day's first page: that's how pages get matched to lectures. |
@@ -111,6 +112,11 @@ Canvas / Gradescope / GoodNotes PDFs / Granola / course websites
   read your courses, change your settings or spend your API credits.
 - **The agent can't change anything.** No tool writes, posts or submits, so instructions hidden
   in course content have nothing to trigger.
+- **Two ways to reach Claude.** With an API key, StudyHub runs the chat loop itself on the
+  Messages API. On a Claude subscription, Claude Code runs it (through the Claude Agent SDK),
+  with StudyHub's tools served to it in-process. Everything else Claude Code can do is switched
+  off: no shell, file or web tools, no settings, hooks, skills or other MCP servers, so the same
+  read-only tools are all the agent has. Chat checks this at the start of every answer.
 
 ## Evals
 
@@ -125,7 +131,8 @@ backend/.venv/bin/studyhub eval data/evals/mine.json --reps 3    # your own; dat
 A case names the sources the way you'd recognize them (`{"title": "CS 231N Lecture 3", "at":
 "47:30"}`, `{"assignment": "Quiz 1", "question": 2}`), plus words the answer must or must not
 contain and tools it should use; `backend/evals/demo.json` shows every option. Runs use a copy
-of the database, say how many paid questions they'll ask before starting, and write
+of the database, say how many questions they'll ask before starting (paid per request with an API
+key; counted against your plan's limits on a subscription), and write
 `results.jsonl`, `errors.jsonl` (API failures, never scored), full transcripts and `summary.json`
 (pass rate with a 95% interval) under `data/evals/runs/`.
 
@@ -137,8 +144,10 @@ make test
 
 GitHub Actions runs the same checks on every push (`.github/workflows/ci.yml`).
 
-The connectors are tested against fake Canvas, Granola and Gradescope responses, the chat loop
-against a scripted model and against the real SDK talking to a local stand-in server.
+The connectors are tested against fake Canvas, Granola and Gradescope responses. The API chat loop
+is tested against a scripted model and against the real SDK talking to a local stand-in server;
+the subscription loop against a scripted Agent SDK, and through the real Claude Code CLI talking to
+a local stand-in server (with a dummy key, never your login).
 
 ## Not built yet
 

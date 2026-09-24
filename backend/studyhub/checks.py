@@ -35,8 +35,14 @@ def check(target: str, settings: Settings | None = None) -> tuple[bool, str]:
         except Exception as e:
             return False, describe_error(e)
     if target == "claude":
-        if not settings.agent_ready:
-            return False, "Add an API key first."
+        backend = settings.agent_backend
+        if backend is None:
+            return False, ("Add an API key, or log in to Claude Code (“claude auth login” in a terminal) "
+                           "to use your Claude subscription.")
+        if backend == "subscription":
+            from .agent.subscription import check_login
+
+            return check_login(settings)
         import anthropic
 
         from .agent.chat import make_client

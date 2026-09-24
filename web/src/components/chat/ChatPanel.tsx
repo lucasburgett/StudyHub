@@ -130,7 +130,8 @@ export function ChatPanel({ context, open, onClose }: ChatPanelProps) {
 
       {status && !status.agent_ready && (
         <p className="chat-note">
-          Chat needs a Claude API key. <Link to={href.settings()}>Add it in Settings</Link>.
+          Chat needs Claude: run <code>claude auth login</code> in a terminal to use your Claude subscription, or{' '}
+          <Link to={href.settings()}>add an API key in Settings</Link>.
         </p>
       )}
       {sync.statusError && <p className="chat-note">Chat is unavailable while the backend can't be reached.</p>}

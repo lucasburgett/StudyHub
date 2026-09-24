@@ -71,6 +71,8 @@ export interface SourceStatus {
 export interface Status {
   demo: boolean
   agent_ready: boolean
+  /** How chat reaches Claude: an API key, or the Claude subscription Claude Code is logged in with. */
+  agent_backend: 'api' | 'subscription' | null
   sources: SourceStatus[]
 }
 

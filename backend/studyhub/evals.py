@@ -299,10 +299,10 @@ def run_eval(cases_path: Path, out_dir: Path, *, reps: int = 1, effort: str = "m
         conn.close()
     if only:
         cases = [c for c in cases if c.id in set(only)]
-    if client is None:
+    if client is None and get_settings().agent_backend == "api":
         from .agent.chat import make_client
 
-        client = make_client()
+        client = make_client()  # else run_chat answers on the Claude subscription
 
     transcripts = out_dir / "transcripts"
     transcripts.mkdir(exist_ok=True)
@@ -326,6 +326,7 @@ def run_eval(cases_path: Path, out_dir: Path, *, reps: int = 1, effort: str = "m
                 if on_row:
                     on_row(row, None)
     summary = summarize(rows, errors, cases)
-    summary["config"] = {"cases_file": str(cases_path), "reps": reps, "effort": effort, "model": get_settings().model}
+    summary["config"] = {"cases_file": str(cases_path), "reps": reps, "effort": effort, "model": get_settings().model,
+                         "backend": "api" if client is not None else "subscription"}
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2))
     return summary

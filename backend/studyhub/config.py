@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     studyhub_model: str = "claude-opus-5"
+    # Which Claude account chat runs on: "api" (an API key), "subscription" (the Claude plan that
+    # Claude Code is logged in with), or "auto": the API key when one is set, else the subscription.
+    studyhub_agent: str = "auto"
 
     canvas_base_url: str = "https://canvas.stanford.edu"
     canvas_token: str = ""
@@ -86,12 +89,30 @@ class Settings(BaseSettings):
         return {"127.0.0.1", "localhost", "::1"} | extra
 
     @property
-    def agent_ready(self) -> bool:
+    def api_key_set(self) -> bool:
+        """Schedule import and handwriting transcription need this; chat can use a subscription instead."""
         return bool(
             self.anthropic_api_key
             or os.environ.get("ANTHROPIC_API_KEY")
             or os.environ.get("ANTHROPIC_AUTH_TOKEN")
         )
+
+    @property
+    def agent_backend(self) -> str | None:
+        """How chat reaches Claude: "api", "subscription", or None when it can't."""
+        mode = self.studyhub_agent.strip().lower()
+        if mode != "subscription" and self.api_key_set:
+            return "api"
+        if mode != "api":
+            from .agent.subscription import claude_login
+
+            if claude_login():
+                return "subscription"
+        return None
+
+    @property
+    def agent_ready(self) -> bool:
+        return self.agent_backend is not None
 
 
 SOURCES = ("canvas", "gradescope", "goodnotes", "granola", "web")

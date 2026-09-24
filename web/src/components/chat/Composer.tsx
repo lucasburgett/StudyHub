@@ -10,7 +10,7 @@ const QUICK_ACTIONS = [
 
 interface ComposerProps {
   placeholder: string
-  /** True when chat can't be used at all (no API key, backend down). */
+  /** True when chat can't be used at all (no way to reach Claude, backend down). */
   unavailable: boolean
   streaming: boolean
   onSend: (text: string) => void

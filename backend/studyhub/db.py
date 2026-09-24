@@ -33,6 +33,10 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
 MIGRATIONS = [
     ("chunks", "embedding", "BLOB"),
     ("chunks", "embed_model", "TEXT"),
+    # Which chat backend answered last ("api" | "subscription"), and on a subscription, the Claude
+    # Code session that holds the conversation so far.
+    ("threads", "backend", "TEXT"),
+    ("threads", "agent_session_id", "TEXT"),
 ]
 
 

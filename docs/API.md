@@ -72,7 +72,8 @@ interface Lecture {
 ```ts
 {
   demo: boolean;               // true when the database holds the example data set
-  agent_ready: boolean;        // true when a Claude API credential is configured
+  agent_ready: boolean;        // true when chat can reach Claude
+  agent_backend: "api" | "subscription" | null; // an API key, or the Claude plan Claude Code is logged in with
   sources: {
     source: Source;
     configured: boolean;       // credentials/paths present in .env
@@ -209,7 +210,7 @@ Responds with `text/event-stream`. Events, in order:
 | `sources`   | `{ "citations": Record<string, Citation> }` — citable locators returned by tools so far; merge into a map |
 | `text`      | `{ "delta": string }` — answer text as it streams                    |
 | `done`      | `{ "message_id": number, "usage"?: object }`                         |
-| `error`     | `{ "message": string }`                                              |
+| `error`     | `{ "message": string, "kind"?: string }` — `kind` is one of `api`, `auth` (Claude Code isn't logged in), `limit` (the subscription's usage limit), `refusal`, `truncated`, `steps`, `tool_json`, `setup` |
 
 ```ts
 interface Citation {

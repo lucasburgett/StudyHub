@@ -139,7 +139,9 @@ def status(conn: sqlite3.Connection = Depends(db)) -> dict:
                 "error": run["error"],
             } if run else None,
         })
-    return {"demo": get_meta(conn, "demo") == "1", "agent_ready": settings.agent_ready, "sources": sources}
+    backend = settings.agent_backend
+    return {"demo": get_meta(conn, "demo") == "1", "agent_ready": backend is not None, "agent_backend": backend,
+            "sources": sources}
 
 
 class SyncRequest(BaseModel):
@@ -394,7 +396,8 @@ def _sse(event: str, data: dict) -> str:
 @app.post("/api/chat")
 def chat(body: ChatRequest) -> StreamingResponse:
     if not get_settings().agent_ready:
-        raise HTTPException(400, "Chat needs a Claude API key. Add ANTHROPIC_API_KEY to backend/.env and restart.")
+        raise HTTPException(400, "Chat needs Claude: log in to Claude Code (“claude auth login”) to use your "
+                                 "Claude subscription, or add an API key in Settings.")
     if not body.message.strip():
         raise HTTPException(400, "Empty message")
 
