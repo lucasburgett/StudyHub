@@ -4,7 +4,7 @@ PYTHON ?= python3
 VENV := backend/.venv
 BIN := $(VENV)/bin
 
-.PHONY: help setup serve dev demo check sync test
+.PHONY: help setup serve dev demo check sync test autostart autostart-off
 
 help: ## Show this list
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  make %-7s %s\n", $$1, $$2}'
@@ -18,6 +18,12 @@ setup: ## Install everything, create backend/.env and the database, build the we
 
 serve: ## Run StudyHub at http://127.0.0.1:8000
 	$(BIN)/studyhub serve
+
+autostart: ## macOS: start StudyHub at login and keep it running (and restart it now)
+	$(BIN)/studyhub autostart on
+
+autostart-off: ## macOS: stop the background StudyHub and don't start it at login
+	$(BIN)/studyhub autostart off
 
 dev: ## Backend with reload + Vite dev server at http://localhost:5173
 	trap 'kill 0' INT TERM EXIT; $(BIN)/studyhub serve --reload & (cd web && npm run dev) & wait

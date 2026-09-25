@@ -27,6 +27,12 @@ make serve     # open http://127.0.0.1:8000
 ```
 
 The example data set is clearly marked in the app, and your first real sync replaces it.
+
+To keep StudyHub running in the background on a Mac, so it's always at http://127.0.0.1:8000 and
+keeps syncing, run `make autostart`. It starts StudyHub at login, restarts it after a crash, and
+logs to `data/logs/studyhub.log`. Run it again after pulling new code, to restart with it.
+`make autostart-off` stops it; do that before `make serve` or `make dev`, which use the same port.
+`studyhub autostart status` says whether it's running.
 `make help` lists the other tasks (`make dev` runs the backend with reload plus the Vite dev
 server on http://localhost:5173; `make test` runs the tests, lint and build).
 

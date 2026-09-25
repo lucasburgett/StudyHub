@@ -25,6 +25,7 @@ make setup     # venv + deps, backend/.env, database, web build
 make test      # backend pytest, web lint + build (CI runs the same on push)
 make dev       # backend --reload + Vite dev server on :5173
 make serve     # everything on http://127.0.0.1:8000
+make autostart # macOS: keep `serve` running at login (Lucas's Mac runs it); `autostart-off` stops it
 ```
 
 ## Conventions

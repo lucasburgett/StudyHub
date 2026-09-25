@@ -1,4 +1,4 @@
-"""Command line: `studyhub check | sync | serve | demo | ask | schedule | index | eval | transcribe`."""
+"""Command line: `studyhub check | sync | serve | autostart | demo | ask | schedule | index | eval | transcribe`."""
 
 from __future__ import annotations
 
@@ -77,7 +77,20 @@ def cmd_sync(args: argparse.Namespace) -> int:
 def cmd_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
-    uvicorn.run("studyhub.api:app", host=args.host, port=args.port, reload=args.reload)
+    uvicorn.run("studyhub.api:app", host=args.host, port=args.port, reload=args.reload,
+                access_log=not args.no_access_log)
+    return 0
+
+
+def cmd_autostart(args: argparse.Namespace) -> int:
+    from . import autostart
+
+    action = {"on": autostart.enable, "off": autostart.disable, "status": autostart.status}[args.action]
+    try:
+        print(action())
+    except RuntimeError as e:
+        print(e)
+        return 1
     return 0
 
 
@@ -245,7 +258,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--reload", action="store_true")
+    p.add_argument("--no-access-log", action="store_true", help="don't log every request")
     p.set_defaults(fn=cmd_serve)
+
+    p = sub.add_parser("autostart", help="keep StudyHub running in the background on macOS (on | off | status)")
+    p.add_argument("action", choices=("on", "off", "status"))
+    p.set_defaults(fn=cmd_autostart)
 
     p = sub.add_parser("demo", help="load an example data set to try the app")
     p.add_argument("--force", action="store_true", help="replace synced data")
