@@ -330,3 +330,47 @@ def test_login_check_runs_the_cli_once_a_minute(monkeypatch, tmp_path):
     subscription.forget_login()
     assert REAL_LOGIN() is None
     subscription.forget_login()
+
+
+STRUCTURED_INIT = SystemMessage("init", {"tools": ["StructuredOutput"]})
+
+
+def test_ask_json_returns_the_structured_answer():
+    script = Script(STRUCTURED_INIT,
+                    AssistantMessage([ToolUseBlock("t1", "StructuredOutput", {"n": 7})], "claude-opus-5", message_id="m1"),
+                    result(structured_output={"n": 7}))
+    assert subscription.ask_json("Days in a week?", {"type": "object"}, query=script) == {"n": 7}
+    o = script.options
+    assert o.tools == [] and o.mcp_servers == {} and o.setting_sources == [] and o.permission_mode == "dontAsk"
+    assert o.output_format == {"type": "json_schema", "schema": {"type": "object"}}
+
+
+def test_ask_json_says_what_went_wrong():
+    script = Script(STRUCTURED_INIT,
+                    AssistantMessage([TextBlock("OAuth session expired")], "<synthetic>", error="authentication_failed"),
+                    result(is_error=True, result="OAuth session expired"))
+    with pytest.raises(RuntimeError, match="claude auth login"):
+        subscription.ask_json("Days in a week?", {"type": "object"}, query=script)
+
+
+def test_chat_never_allows_structured_output(demo):
+    """ask_json may see Claude Code's StructuredOutput tool; chat may not."""
+    events = list(run_chat_subscription(demo, "hi", query=Script(STRUCTURED_INIT, result())))
+    assert [d["kind"] for e, d in events if e == "error"] == ["setup"]
+
+
+def test_schedule_import_on_the_subscription(conn, monkeypatch):
+    from studyhub.ingest import schedule
+    from studyhub.store import ensure_course
+
+    cid = ensure_course(conn, "MATH 115", title="Functions of a Real Variable", term="Fall 2026")
+    lectures = {"lectures": [{"number": 1, "date": "2026-09-22", "title": "Real numbers"},
+                             {"number": 2, "date": "2026-09-24", "title": "Sequences"}]}
+    script = Script(STRUCTURED_INIT, result(structured_output=lectures))
+    monkeypatch.setattr(claude_agent_sdk, "query", script)
+    monkeypatch.setattr(subscription, "claude_login", lambda max_age=60.0: {"loggedIn": True})
+    config.get_settings.cache_clear()
+    rows = schedule.extract_schedule(conn, cid, "Week 1: Tue 9/22 Real numbers; Thu 9/24 Sequences")
+    assert [(r["number"], r["date"], r["title"]) for r in rows] == [(1, "2026-09-22", "Real numbers"),
+                                                                     (2, "2026-09-24", "Sequences")]
+    assert "MATH 115: Functions of a Real Variable" in script.prompt and "Thu 9/24 Sequences" in script.prompt

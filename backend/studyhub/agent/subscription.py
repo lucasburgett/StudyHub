@@ -163,9 +163,10 @@ class _Run:
     """State for one answer. The SDK side runs on its own thread and event loop; events come back
     through a queue. Tool handlers use the SQLite connection from worker threads, one at a time."""
 
-    def __init__(self, toolbox: Toolbox | None, citations: dict[str, dict]):
+    def __init__(self, toolbox: Toolbox | None, citations: dict[str, dict], also_allowed: frozenset = frozenset()):
         self.toolbox = toolbox
         self.citations = citations
+        self.also_allowed = also_allowed  # Claude Code's own tools this run may see, e.g. StructuredOutput
         self.events: queue.Queue = queue.Queue()
         self.db_lock = threading.Lock()
         self.texts: dict[str, str] = {}   # assistant message id -> its text, in order
@@ -174,6 +175,7 @@ class _Run:
         self.model: str | None = None
         self.stop_reason: str | None = None
         self.session_id: str | None = None
+        self.structured: Any = None
         self.acted = False                # Claude wrote or called something, so the session is worth keeping
         self.error: str | None = None
         self.error_kind: str | None = None
@@ -277,7 +279,7 @@ class _Run:
                 self._stream(self._streaming_id or "", event["delta"]["text"])
         elif isinstance(message, SystemMessage) and message.subtype == "init":
             offered = message.data.get("tools") or []
-            extra = sorted(t for t in offered if not t.startswith(f"mcp__{SERVER}__"))
+            extra = sorted(t for t in offered if not t.startswith(f"mcp__{SERVER}__") and t not in self.also_allowed)
             if extra:
                 log.error("Claude Code offered tools besides StudyHub's: %s", extra)
                 self.fail("Chat stopped: Claude Code offered tools besides StudyHub's own "
@@ -305,6 +307,7 @@ class _Run:
         elif isinstance(message, ResultMessage):
             self.session_id = message.session_id
             self.stop_reason = message.stop_reason
+            self.structured = message.structured_output
             for key in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"):
                 self.usage[key] = (message.usage or {}).get(key, 0) or 0
             if message.subtype == "error_max_turns":
@@ -337,6 +340,25 @@ class _Run:
                 self.emit("text", {"delta": "\n\n"})
             self._streamed.add(msg_id)
         self.emit("text", {"delta": delta})
+
+
+def ask_json(prompt: str, schema: dict, *, effort: str = "low", query: Callable | None = None) -> Any:
+    """One question answered as JSON matching `schema`, with no tools (schedule import)."""
+    if query is None:
+        from claude_agent_sdk import query
+
+    settings = get_settings()
+    options = build_options(system="Answer with the requested JSON.", cwd=agent_dir(settings), model=settings.model,
+                            effort=effort, server=None, tools=[], max_turns=3)  # the answer itself is a tool call
+    options.output_format = {"type": "json_schema", "schema": schema}
+    options.include_partial_messages = False
+    run = _Run(None, {}, also_allowed=frozenset({"StructuredOutput"}))
+    run.drive(query, prompt, options)
+    if run.error:
+        raise RuntimeError(run.error)
+    if run.structured is None:
+        raise RuntimeError("Claude didn't return an answer in the requested format.")
+    return run.structured
 
 
 def check_login(settings: Settings) -> tuple[bool, str]:

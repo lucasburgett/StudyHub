@@ -81,6 +81,10 @@ def extract_schedule(conn: sqlite3.Connection, course_id: int, material: str,
         term=course["term"] or "current term", start=f", starting {course['term_start']}" if course["term_start"] else "",
         material=material,
     )
+    if client is None and get_settings().agent_backend == "subscription":
+        from ..agent.subscription import ask_json
+
+        return clean(ask_json(prompt, SCHEMA)["lectures"])
     client = client or make_client()
     response = client.beta.messages.create(
         model=get_settings().model,

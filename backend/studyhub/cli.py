@@ -11,7 +11,7 @@ from pathlib import Path
 from .config import BACKEND_DIR, SOURCES, get_settings
 from .db import session
 
-NO_CLAUDE = ("Chat needs Claude: log in to Claude Code (`claude auth login`) to use your Claude subscription, "
+NO_CLAUDE = ("This needs Claude: log in to Claude Code (`claude auth login`) to use your Claude subscription, "
              "or set ANTHROPIC_API_KEY in backend/.env.")
 
 
@@ -147,8 +147,8 @@ def cmd_schedule(args: argparse.Namespace) -> int:
             if args.csv:
                 rows = schedule.read_csv(args.csv)
             else:
-                if not get_settings().api_key_set:
-                    print("Reading a schedule needs ANTHROPIC_API_KEY in backend/.env (or use --csv).")
+                if not get_settings().agent_ready:
+                    print(f"{NO_CLAUDE} Or pass --csv.")
                     return 1
                 material = schedule.fetch_page(args.url) if args.url else schedule.course_material(conn, course_id)
                 if not material.strip():
