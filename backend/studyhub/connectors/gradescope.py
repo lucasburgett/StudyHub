@@ -13,6 +13,7 @@ import json
 import re
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urlparse
 
 from ..config import Settings
 from ..store import FeedbackIn, ensure_course, find_course, replace_feedback, upsert_assignment
@@ -24,16 +25,32 @@ _SEASONS = {"winter": 0, "spring": 1, "summer": 2, "fall": 3, "autumn": 3}
 
 
 def _login(settings: Settings):
+    """gradescopeapi's login, checked properly. The library counts any redirect as success, but a
+    refused login also redirects (back to /login), and it sends the password in the URL."""
+    from bs4 import BeautifulSoup
+    from gradescopeapi.classes._helpers._login_helpers import get_auth_token_init_gradescope_session
+    from gradescopeapi.classes.account import Account
     from gradescopeapi.classes.connection import GSConnection
 
-    gs = GSConnection()
-    try:
-        gs.login(settings.gradescope_email, settings.gradescope_password)
-    except ValueError as e:
+    gs = GSConnection(BASE_URL)
+    token = get_auth_token_init_gradescope_session(gs.session, BASE_URL)
+    resp = gs.session.post(f"{BASE_URL}/login", data={
+        "utf8": "✓", "session[email]": settings.gradescope_email, "session[password]": settings.gradescope_password,
+        "session[remember_me]": 0, "commit": "Log In", "session[remember_me_sso]": 0, "authenticity_token": token,
+    })
+    soup = BeautifulSoup(resp.text, "html.parser")
+    if urlparse(resp.url).path.rstrip("/") in ("", "/login"):
+        alert = next((" ".join(a.get_text(" ", strip=True).split()) for a in soup.select(".alert, [role=alert]")
+                      if a.get_text(strip=True)), None)
         raise RuntimeError(
-            "Gradescope login failed. With Stanford SSO, set a Gradescope password first "
-            "(gradescope.com → Log in → Forgot password)."
-        ) from e
+            f"Gradescope didn't accept the login: {alert}" if alert else
+            "Gradescope didn't accept this email and password. With Stanford SSO, set a Gradescope password "
+            "first (gradescope.com → Log in → Forgot password)."
+        )
+    csrf = soup.select_one('meta[name="csrf-token"]')
+    if csrf:
+        gs.session.headers["X-CSRF-Token"] = csrf["content"]
+    gs.logged_in, gs.account = True, Account(gs.session, BASE_URL)
     return gs
 
 
@@ -62,33 +79,27 @@ def _num(value: Any) -> float | None:
 
 
 def parse_submission_props(props: dict[str, Any]) -> list[FeedbackIn]:
-    """Per-question scores, applied rubric items and comments from a submission viewer's props."""
-    questions = props.get("questions") or []
-    scored = {str(q.get("question_id")): q for q in props.get("question_submissions") or []}
-    rubric: dict[str, list[dict]] = {}
+    """Per-question scores, applied rubric items and comments from the submission viewer's props
+    (the AssignmentSubmissionViewer page; checked against real graded work in Sep 2026)."""
+    subs = {str(s.get("question_id")): s for s in props.get("question_submissions") or []}
+    applied: dict[str, list[dict]] = {}
     for item in props.get("rubric_items") or []:
-        rubric.setdefault(str(item.get("question_id")), []).append(item)
-
-    applied: set[str] = set()
-    for ev in props.get("evaluations") or props.get("question_submission_evaluations") or []:
-        for ri in ev.get("rubric_items") or []:
-            if isinstance(ri, dict) and ri.get("present"):
-                applied.add(str(ri.get("rubric_item_id") or ri.get("id")))
-            elif isinstance(ri, (int, str)):
-                applied.add(str(ri))
-        for rid in ev.get("rubric_item_ids") or []:
-            applied.add(str(rid))
+        if item.get("present"):
+            applied.setdefault(str(item.get("question_id")), []).append(item)
 
     out: list[FeedbackIn] = []
-    for q in questions:
+    for q in props.get("questions") or []:
+        if q.get("type") == "QuestionGroup":  # a heading like "Q3"; its parts (3.1, 3.2) carry the scores
+            continue
         qid = str(q.get("id"))
-        sub = scored.get(qid, {})
-        items = [
-            f"{i.get('description') or i.get('title') or 'Rubric item'} ({i.get('weight')})"
-            for i in rubric.get(qid, [])
-            if i.get("present") or str(i.get("id")) in applied
-        ]
-        comments = [c.get("text") for c in (sub.get("annotations") or sub.get("comments") or []) if isinstance(c, dict)]
+        sub = subs.get(qid, {})
+        # Graders write comments on the question, or as text boxes on the scanned page.
+        comments = [e.get("comments") for e in sub.get("evaluations") or [] if isinstance(e, dict)]
+        comments += [a.get("content") for a in sub.get("annotations") or [] if isinstance(a, dict)]
+        items = []
+        for i in applied.get(qid, []):
+            weight = _num(i.get("weight"))
+            items.append(f"{i.get('description') or 'Rubric item'}" + (f" ({weight:g})" if weight is not None else ""))
         name = q.get("full_index") or q.get("numbered_title") or q.get("title") or f"Question {len(out) + 1}"
         if q.get("title") and q.get("full_index"):
             name = f"Q{q['full_index']}: {q['title']}"
@@ -97,13 +108,16 @@ def parse_submission_props(props: dict[str, Any]) -> list[FeedbackIn]:
             score=_num(sub.get("score")),
             max_score=_num(q.get("weight")),
             rubric_items=items,
-            comment="\n".join(c for c in comments if c) or None,
+            comment="\n".join(c.strip() for c in comments if isinstance(c, str) and c.strip()) or None,
         ))
     return out
 
 
 def fetch_feedback(session: Any, course_id: str, assignment_id: str) -> list[FeedbackIn] | None:
-    resp = session.get(f"{BASE_URL}/courses/{course_id}/assignments/{assignment_id}")
+    # Without an explicit Accept, Gradescope answers the logged-in session with the scan's JSON
+    # (pages, PDF), not the viewer page that carries scores, rubric items and comments.
+    resp = session.get(f"{BASE_URL}/courses/{course_id}/assignments/{assignment_id}",
+                       headers={"Accept": "text/html"})
     if resp.status_code != 200:
         return None
     m = re.search(r'data-react-class="AssignmentSubmissionViewer"[^>]*data-react-props="([^"]+)"', resp.text)
