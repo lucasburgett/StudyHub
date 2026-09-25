@@ -15,8 +15,17 @@ _NOT_DEPARTMENTS = {
     "SEPT", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL",
     "AUG", "MON", "TUE", "TUES", "WED", "THU", "THUR", "THURS", "FRI", "SAT", "SUN",
     "AM", "PM", "V", "Q", "QUESTION", "TOPIC", "MODULE", "HOUR", "HOURS", "MIN",
+    # Stanford departments run to eight letters (APPPHYS, FRENLANG), so longer words need listing too.
+    "LECTURE", "LECTURES", "SECTION", "SECTIONS", "CHAPTER", "CHAPTERS", "PROBLEM", "PROBLEMS",
+    "HOMEWORK", "MIDTERM", "MIDTERMS", "SESSION", "SESSIONS", "PROJECT", "PROJECTS", "READING",
+    "READINGS", "EXERCISE", "TUTORIAL", "SEMINAR", "HANDOUT", "HANDOUTS", "PRACTICE", "SOLUTION",
+    "LESSON", "LESSONS", "REVIEW", "TEST", "TESTS", "FIGURE", "VERSION", "EPISODE", "NOTEBOOK",
+    "RECORDING", "WEEKS", "UNITS", "PARTS", "PAGES", "DAYS", "CLASSES", "COURSE", "LEVEL", "STEP",
+    "GROUP", "TEAM", "TABLE", "PHASE", "ROUND", "DEMO", "PAPER", "ITEM", "TASK", "NUMBER",
+    "JANUARY", "FEBRUARY", "MARCH", "APRIL", "JUNE", "JULY", "AUGUST", "OCTOBER", "NOVEMBER",
+    "DECEMBER", "MONDAY", "TUESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY",
 }
-_CODE_RE = re.compile(r"(?<![A-Z0-9])([A-Z]{2,6})[\s\-_]*(\d{1,3}[A-Z]{0,3})(?![A-Z0-9])")
+_CODE_RE = re.compile(r"(?<![A-Z0-9])([A-Z]{2,8})[\s\-_]*(\d{1,3}[A-Z]{0,3})(?![A-Z0-9])")
 
 
 def course_codes(text: str | None) -> list[tuple[str, str]]:

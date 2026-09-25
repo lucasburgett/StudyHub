@@ -227,7 +227,9 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-    logging.getLogger("claude_agent_sdk").setLevel(logging.WARNING)
+    # httpx logs every URL, and Canvas file downloads carry signed tokens in theirs.
+    for name in ("claude_agent_sdk", "httpx"):
+        logging.getLogger(name).setLevel(logging.WARNING)
     parser = argparse.ArgumentParser(prog="studyhub", description="Your classes in one place.")
     sub = parser.add_subparsers(dest="command", required=True)
 

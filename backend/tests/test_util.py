@@ -10,6 +10,15 @@ def test_course_codes():
     assert course_codes("Week 2 notes") == []
     assert course_codes("Lecture 3") == []
     assert course_codes(None) == []
+    # Stanford's Canvas course codes; departments run to eight letters.
+    assert course_codes("F26-APPPHYS-293-01") == [("APPPHYS 293", "APPPHYS293")]
+    assert course_codes("F26-FRENLANG-1-02") == [("FRENLANG 1", "FRENLANG1")]
+    assert course_codes("F26-STATS-118-01/02") == [("STATS 118", "STATS118")]
+    assert course_codes("OSPPARIS 40/Notes.pdf") == [("OSPPARIS 40", "OSPPARIS40")]
+    for text in ("Section 2", "Midterm 1 review", "Problem 3", "Lesson 4", "Chapter 7 notes", "Homework 2",
+                 "Lectures 1-3", "Handout 5", "Practice 2", "Solution 1", "Session 3", "Project 2", "Review 1",
+                 "Test 1", "October 3", "Tutorial 2"):
+        assert course_codes(text) == [], text
 
 
 def test_lecture_number():
