@@ -355,7 +355,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <ul class="status-list">
       <li><span class="who"><span class="dot granola"></span>Granola</span><span class="what">Connected as lburgett@stanford.edu. One folder, CS 231N, with no lectures recorded yet.</span></li>
       <li><span class="who"><span class="dot goodnotes"></span>GoodNotes</span><span class="what">No backups in your Google Drive yet.</span></li>
-      <li><span class="who"><span class="dot canvas"></span>Canvas</span><span class="what">No access yet. Needs a personal access token.</span></li>
+      <li><span class="who"><span class="dot canvas"></span>Canvas</span><span class="what">Connected. Four courses synced: APPPHYS 293, FRENLANG 1, MATH 115, STATS 118.</span></li>
       <li><span class="who"><span class="dot gradescope"></span>Gradescope</span><span class="what">No official API. Needs a password login.</span></li>
     </ul>
   </div>
@@ -374,7 +374,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
 <section class="block" id="built">
   <header>
     <span class="eyebrow">What's built · September 24, 2026</span>
-    <h2>Phases 1–3 are built, and chat runs on your Claude Max plan. Your course accounts aren't connected yet.</h2>
+    <h2>Phases 1–3 are built, chat runs on your Claude Max plan, and Canvas is connected.</h2>
     <p>Chat no longer needs an API key: it runs through Claude Code on your Max plan, and answered real questions on your Mac on September 24. The code is on the branch <a href="https://github.com/lucasburgett/StudyHub/tree/claude/class-resources-chat-qcay22" target="_blank" rel="noopener">claude/class-resources-chat-qcay22</a>, and CI passes on it. There's no pull request yet. An agent working locally can pick it up from <a href="https://github.com/lucasburgett/StudyHub/blob/claude/class-resources-chat-qcay22/docs/HANDOFF.md" target="_blank" rel="noopener">docs/HANDOFF.md</a>, and <code>CLAUDE.md</code> points it there automatically.</p>
   </header>
 
@@ -387,7 +387,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <table>
       <thead><tr><th>Area</th><th>Status</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td><td><span class="pill warn">Untested on real data</span></td><td>REST API with a personal access token: courses, syllabus, modules, files and slides, pages, assignments, announcements.</td></tr>
+        <tr><td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td><td><span class="pill ok">Syncing your 4 courses</span></td><td>REST API with a personal access token: courses, syllabus, modules, files and slides, pages, assignments, announcements. Lectures take their number, date and topic from the slides' title page.</td></tr>
         <tr><td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td><td><span class="pill warn">Untested on real data</span></td><td>Scores and due dates through <code>gradescopeapi</code>. Reading per-question feedback is a best guess until it sees a real submission page.</td></tr>
         <tr><td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td><td><span class="pill warn">Untested on real data</span></td><td>Reads Auto Backup PDFs from a folder. A notes page joins a lecture by the date written at its top.</td></tr>
         <tr><td><span class="src-name"><span class="dot granola"></span>Granola</span></td><td><span class="pill warn">Untested on real data</span></td><td>Public API, which needs a Business plan. Keeps its own copy of every transcript.</td></tr>
@@ -410,6 +410,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
       <ul>
         <li>84 backend tests against fake Canvas, Gradescope, Granola and course-site servers</li>
         <li>Chat on your Max plan: a question from the terminal and a follow-up in the web app, both answered by Claude with valid citations</li>
+        <li>Canvas sync on your real courses, and a chat about them: this week's deadline and page-cited summaries of MATH 115's first two lectures</li>
         <li>That Claude Code gets only StudyHub's read-only tools: no shell, file or web access</li>
         <li>The API-key chat loop through the real Anthropic SDK, talking to a local stand-in server</li>
         <li>The whole app in a headless browser on the example data, including the phone layout and dark mode</li>
@@ -420,7 +421,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <div class="panel open">
       <h3>Not verified yet</h3>
       <ul>
-        <li>Any real account. The build sandbox's network blocked <code>canvas.stanford.edu</code> and the other sources</li>
+        <li>Gradescope, GoodNotes and Granola against your real accounts</li>
         <li>The API-key path against the real API (chat uses your Max plan instead)</li>
         <li>Gradescope's submission page format, and Granola's paged-transcript endpoint</li>
         <li>How well handwriting gets transcribed, and embeddings from a real model</li>
@@ -431,9 +432,9 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <div class="stack">
     <h3>Next, in order</h3>
     <ol class="next">
-      <li>Open Settings in the app and add a fresh Canvas token with an expiry date (and revoke the one shared in chat), then Test connection.</li>
-      <li>Sync Canvas and fix whatever real data breaks: how course codes are read, lecture numbering, courses with the Files tab hidden.</li>
-      <li>Gradescope feedback, your Granola plan, the GoodNotes backup folder, and this term's course site.</li>
+      <li>Gradescope: set a Gradescope password, add it in Settings, and sync. MATH 115 and STATS 118 post their homework there.</li>
+      <li>Lecture recordings: MATH 115, STATS 118 and APPPHYS 293 keep theirs on Panopto, so decide between Panopto captions and recording in Granola.</li>
+      <li>The GoodNotes backup folder, and any course that posts slides on its own site.</li>
       <li>Evals built from your real questions, run on your Max plan, then use them to tune search and prompts.</li>
       <li>Schedule import and handwriting transcription on your Max plan, so nothing needs an API key.</li>
     </ol>
@@ -457,7 +458,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
           <td>Personal access token (Account → Settings → New access token)</td>
           <td>Courses, syllabus, modules, files and slides, pages, assignments and due dates, announcements, calendar</td>
           <td>Instructure has no official MCP server for outside agents. After the April 2026 breach it restricted how tokens can be created, so confirm Stanford still lets students make one. Some CS courses post slides on the course website, not Canvas.</td>
-          <td><span class="pill bad">Not set up</span></td>
+          <td><span class="pill ok">Connected</span></td>
         </tr>
         <tr>
           <td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td>

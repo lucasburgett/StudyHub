@@ -164,9 +164,10 @@ the subscription is a second backend.
 
 ### Still to do
 
-1. **Schedule import and transcription on the subscription.**
-   - Schedule import: `output_format={"type": "json_schema", ...}`, then read
-     `ResultMessage.structured_output`.
+1. **Transcription on the subscription.** Schedule import already runs there, through
+   `subscription.ask_json`: a JSON-schema `output_format`, with the answer read from
+   `ResultMessage.structured_output`. Claude Code answers through its own `StructuredOutput`
+   tool, which `ask_json` allows and chat never does.
    - Transcription: send page images as image blocks in a streaming-input prompt.
    - Every `query()` starts a CLI process, so batch several pages per call.
 2. **`fallback_model`.** The SDK has it, but what triggers it is undocumented, so it's unused;
@@ -174,15 +175,39 @@ the subscription is a second backend.
 
 ## Task 2: make it work on real data
 
-Do this with Lucas at the keyboard; it needs his credentials. As of the last session he
-hadn't filled in `backend/.env` yet.
+Do this with Lucas at the keyboard; it needs his credentials. **Canvas is connected** (2026-09-24,
+below). Gradescope, GoodNotes, Granola and course sites aren't set up yet.
+
+### Canvas: connected and synced (2026-09-24)
+
+- Four courses: APPPHYS 293, FRENLANG 1, MATH 115, STATS 118. Three non-course sites (French
+  Placement, BOSP–Paris, PreCalculus Refresher) have no course code and are skipped.
+- **Fixed:** department codes run to eight letters at Stanford (`F26-APPPHYS-293-01`,
+  `F26-FRENLANG-1-02`). `util.course_codes` accepted six, so two courses were silently dropped.
+  It now takes eight, with a longer list of words that aren't departments ("Lecture 3",
+  "Section 2").
+- **Fixed:** lecture titles from Stanford file names (`2026FMath115Lecture01.pdf` was titled
+  "2026FMath115"). `clean_lecture_title` now strips the course's own code and term prefixes.
+  Lectures also take their date and topic from the deck's title slide
+  ("Math 115, Lecture 1 (September 22, 2026): Introduction") when no stronger signal exists.
+- **Quieted:** httpx logged every download URL, including Canvas's signed file tokens.
+- **What's where:**
+  - FRENLANG 1 is all on Canvas: pages, files, modules, assignments.
+  - MATH 115 and STATS 118 put homework on Gradescope, so Gradescope is next.
+  - MATH 115, STATS 118 and APPPHYS 293 keep lecture videos on **Panopto** (a Canvas tab), not
+    Granola. Panopto captions would be the lecture transcripts; that's a possible new source,
+    so ask first.
+  - APPPHYS 293 has only announcements on Canvas; its welcome post says materials go out on
+    Google Docs.
+- MATH 115's syllabus has a weekly topic list but no per-lecture dates, so `studyhub schedule`
+  correctly finds nothing. Its syllabus also has an AI policy; Lucas knows about it and has
+  decided how to handle it. Don't re-raise it.
+- A real `studyhub ask` about his courses answered with correct deadlines and page-cited lecture
+  summaries.
 
 1. `make setup` (again, to install `claude-agent-sdk`), `make serve`, then open **Settings** (the sliders icon) and fill in what he has;
    **Test connection** checks each one. It writes `backend/.env`; editing that file by hand works too. Never commit `.env`, and
    never paste secrets into files that are tracked.
-   - He shared a Canvas token in a chat on 2026-09-24. Suggest he revoke it (Canvas →
-     Account → Settings → Approved Integrations) and create a new one with an expiry date for
-     `.env`.
    - `GOODNOTES_DIR` is usually
      `~/Library/CloudStorage/GoogleDrive-<email>/My Drive/<backup folder>` once GoodNotes Auto
      Backup is set to Google Drive in PDF format. Google Drive for Desktop is installed, but
@@ -194,11 +219,8 @@ hadn't filled in `backend/.env` yet.
 
 Then go down the list of **untested assumptions**, most likely to break first:
 
-1. **Canvas course names → codes.** `util.course_codes` (`backend/studyhub/util.py:22`) must
-   pull "CS 231N" out of Stanford's real `course_code` and `name` values.
-   - A course without a recognizable code is skipped silently (logged at INFO).
-   - Also check: modules or files that say "Lecture N", the Files tab being hidden (403/401
-     handling in `canvas.py:44`), and whether downloads redirect to a file-store host.
+1. **Canvas course names → codes.** Done for Lucas's courses (see above). Downloads redirect
+   through Canvas's file-store hosts and work; hidden Pages tabs return 404 and are skipped.
 2. **Claude API request shape.** Run `studyhub ask "What's due this week?"`. The request uses:
    - `client.beta.messages.stream` with `model="claude-opus-5"`
    - `thinking={"type": "adaptive"}` and `output_config={"effort": "medium"}`
