@@ -37,6 +37,7 @@ def _pdf(text: str) -> bytes:
 class FakeSite:
     def __init__(self):
         self.gets: list[str] = []
+        self.files: dict[str, bytes] = {}  # made once: PyMuPDF's output varies in size from call to call
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         url = str(request.url)
@@ -46,7 +47,8 @@ class FakeSite:
             return httpx.Response(200, text=PAGE, headers={"content-type": "text/html"})
         if url.endswith(".pdf") or url.endswith("/abc123/export/pdf"):
             name = url.rsplit("/", 1)[-1]
-            return httpx.Response(200, content=_pdf(f"Content of {name}"), headers={"etag": f'"{name}-v1"'})
+            content = self.files.setdefault(name, _pdf(f"Content of {name}"))
+            return httpx.Response(200, content=content, headers={"etag": f'"{name}-v1"'})
         if "private9" in url:
             return httpx.Response(200, text="<html>Sign in</html>")
         return httpx.Response(404)
