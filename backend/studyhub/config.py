@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     granola_api_key: str = ""
 
     course_sites: str = ""
+    # For classes that post homework on a page per class ("Week 1, Day 3"): when they meet.
+    # "FRENLANG 1=Mon-Fri 9:30 from 2026-09-21; …"
+    class_schedules: str = ""
 
     studyhub_embeddings: str = "auto"  # auto | voyage | local | off
     voyage_api_key: str = ""

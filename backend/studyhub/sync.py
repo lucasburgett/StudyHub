@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from .config import SOURCES, Settings, get_settings
 from .connectors import SyncContext, get_connector
 from .db import get_meta, now_iso, session, set_meta
+from .ingest.class_pages import rebuild_class_homework
 from .ingest.linking import rebuild_lectures
 from .util import parse_dt, title_key
 
@@ -106,6 +107,11 @@ def run_source(source: str, settings: Settings | None = None) -> dict:
                 log.error("%s sync failed: %s\n%s", source, error, traceback.format_exc())
             for course_id in sorted(ctx.touched_courses):
                 rebuild_course(conn, course_id)
+            # Class-page homework moves from upcoming to past as time goes by, so refresh it for every
+            # course on every sync, not only the courses that changed.
+            homework_warnings = rebuild_class_homework(conn)
+            if source == "canvas":
+                ctx.warnings += homework_warnings
             index_new_chunks(conn, settings, ctx.warnings)
             conn.execute(
                 "UPDATE sync_runs SET finished_at = ?, status = ?, items_changed = ?, warnings_json = ?, error = ?"

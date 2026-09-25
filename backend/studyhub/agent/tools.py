@@ -22,7 +22,8 @@ MAX_LECTURE_CHARS = 120_000
 
 Source = Literal["canvas", "gradescope", "goodnotes", "granola"]
 Kind = Literal["slides", "file", "page", "spec", "notes", "transcript", "submission", "announcement"]
-Status = Literal["upcoming", "submitted", "graded", "missing", "unknown"]
+# done / past: homework from class pages, which the student ticks off in StudyHub.
+Status = Literal["upcoming", "submitted", "graded", "missing", "unknown", "done", "past"]
 
 
 @dataclass

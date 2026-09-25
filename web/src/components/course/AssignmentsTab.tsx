@@ -3,6 +3,7 @@ import { formatDateTime, formatScore } from '../../lib/format'
 import { href, navigate } from '../../lib/router'
 import { useApi } from '../../lib/useApi'
 import { EmptyState, ErrorState, Link, Loading, SourceDot, StatusPill } from '../ui'
+import { DoneToggle } from './DoneToggle'
 
 export function AssignmentsTab({ courseId }: { courseId: number }) {
   const assignments = useApi(endpoints.courseAssignments(courseId))
@@ -43,7 +44,15 @@ export function AssignmentsTab({ courseId }: { courseId: number }) {
               </td>
               <td className="date">{a.due_at ? formatDateTime(a.due_at) : '—'}</td>
               <td>
-                <StatusPill status={a.status} />
+                <span className="status-cell">
+                  <StatusPill status={a.status} />
+                  {a.checkable && (
+                    // The row opens the assignment; ticking the box shouldn't.
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <DoneToggle assignment={a} onChange={assignments.reload} />
+                    </span>
+                  )}
+                </span>
               </td>
               <td className="num">{formatScore(a.score, a.points) || '—'}</td>
             </tr>

@@ -104,7 +104,12 @@ function AssignmentRoute({ assignmentId, question }: { assignmentId: number; que
   if (!a) return <Loading />
   return (
     <CourseFrame courseId={a.course_id} activeTab="assignments">
-      <AssignmentView assignment={a} question={question} backTo={href.course(a.course_id, 'assignments')} />
+      <AssignmentView
+        assignment={a}
+        question={question}
+        backTo={href.course(a.course_id, 'assignments')}
+        onChange={reload}
+      />
     </CourseFrame>
   )
 }

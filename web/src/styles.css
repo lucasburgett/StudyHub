@@ -2268,6 +2268,20 @@ tr.clickable:hover td {
   overflow-wrap: anywhere;
 }
 
+.status-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.done-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
 .sync-warnings {
   margin: 0;
   padding: 8px 12px 8px 28px;

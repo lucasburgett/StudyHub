@@ -18,7 +18,8 @@ export interface ResourceSummary {
   duration_min: number | null
 }
 
-export type AssignmentStatus = 'upcoming' | 'submitted' | 'graded' | 'missing' | 'unknown'
+/** done / past: homework from class pages, which you tick off in StudyHub. */
+export type AssignmentStatus = 'upcoming' | 'submitted' | 'graded' | 'missing' | 'unknown' | 'done' | 'past'
 
 export interface AssignmentSummary {
   id: number
@@ -31,6 +32,8 @@ export interface AssignmentSummary {
   status: AssignmentStatus
   url: string | null
   spec_resource_id: number | null
+  /** Homework from a class page: no submission to go by, so it has a Done checkbox. */
+  checkable: boolean
 }
 
 export type LectureGap = 'recording' | 'notes' | 'slides'

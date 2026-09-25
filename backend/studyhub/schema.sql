@@ -112,6 +112,15 @@ CREATE TABLE IF NOT EXISTS assignments (
 );
 CREATE INDEX IF NOT EXISTS assignments_course ON assignments(course_id, due_at);
 
+-- Homework ticked off in StudyHub. Class-page homework has no submission to check, and its
+-- assignment rows are rebuilt after every sync, so the tick is keyed by their stable id.
+CREATE TABLE IF NOT EXISTS assignment_done (
+  source      TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  done_at     TEXT NOT NULL,
+  PRIMARY KEY (source, external_id)
+);
+
 CREATE TABLE IF NOT EXISTS feedback (
   id                INTEGER PRIMARY KEY,
   assignment_id     INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,

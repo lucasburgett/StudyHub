@@ -20,6 +20,7 @@ from .agent.chat import run_chat
 from .citations import citation, resource_locator
 from .config import REPO_DIR, SOURCES, get_settings
 from .db import connect, get_meta, init_db, loads, now_iso
+from .ingest.class_pages import is_class_homework, mark_done, rebuild_class_homework
 from .search import search as run_search
 from .search import snippet_html
 from .store import file_abspath
@@ -97,6 +98,8 @@ def assignment_summary(a: sqlite3.Row) -> dict:
         "id": a["id"], "course_id": a["course_id"], "source": a["source"], "title": a["title"], "due_at": a["due_at"],
         "points": a["points"], "score": a["score"], "status": a["status"], "url": a["url"],
         "spec_resource_id": a["spec_resource_id"],
+        # Class-page homework has no submission to go by, so it's ticked off by hand.
+        "checkable": is_class_homework(a["external_id"]),
     }
 
 
@@ -171,13 +174,15 @@ class SettingsUpdate(BaseModel):
 
 
 @app.put("/api/settings")
-def save_settings(body: SettingsUpdate) -> dict:
+def save_settings(body: SettingsUpdate, conn: sqlite3.Connection = Depends(db)) -> dict:
     try:
         updates = envfile.validate(body.values)
     except envfile.SettingsError as e:
         raise HTTPException(400, str(e)) from e
     if updates:
         envfile.write_env(updates)
+    if "CLASS_SCHEDULES" in updates:  # re-date class-page homework now, not at the next sync
+        rebuild_class_homework(conn)
     return envfile.describe()
 
 
@@ -355,6 +360,20 @@ def assignment(assignment_id: int, conn: sqlite3.Connection = Depends(db)) -> di
     ]
     return {**assignment_summary(a), "course_code": a["course_code"],
             "description": spec["markdown"] if spec else None, "feedback": feedback}
+
+
+class DoneUpdate(BaseModel):
+    done: bool
+
+
+@app.put("/api/assignments/{assignment_id}/done")
+def set_done(assignment_id: int, body: DoneUpdate, conn: sqlite3.Connection = Depends(db)) -> dict:
+    _one(conn, "SELECT id FROM assignments WHERE id = ?", assignment_id)
+    try:
+        mark_done(conn, assignment_id, body.done)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return assignment_summary(_one(conn, "SELECT * FROM assignments WHERE id = ?", assignment_id))
 
 
 # ---------------------------------------------------------------- search

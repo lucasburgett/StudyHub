@@ -11,7 +11,7 @@ from studyhub.db import connect, init_db
 
 SOURCE_VARS = ("CANVAS_BASE_URL", "CANVAS_TOKEN", "GRADESCOPE_EMAIL", "GRADESCOPE_PASSWORD", "GOODNOTES_DIR",
                "GRANOLA_API_KEY", "COURSE_SITES", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "VOYAGE_API_KEY",
-               "STUDYHUB_AGENT")
+               "STUDYHUB_AGENT", "CLASS_SCHEDULES")
 
 
 @pytest.fixture(autouse=True)

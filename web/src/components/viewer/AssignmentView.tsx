@@ -4,6 +4,7 @@ import { formatDateTime, formatNumber, formatScore } from '../../lib/format'
 import { SOURCE_NAMES } from '../../lib/labels'
 import { href } from '../../lib/router'
 import { Markdown } from '../Markdown'
+import { DoneToggle } from '../course/DoneToggle'
 import { ExternalLink, Link, StatusPill } from '../ui'
 import { ViewerHeader } from './ViewerHeader'
 
@@ -28,9 +29,11 @@ interface AssignmentViewProps {
   assignment: AssignmentDetail
   question: number | null
   backTo: string
+  /** Called after the Done box changes, to reload the assignment. */
+  onChange: () => void
 }
 
-export function AssignmentView({ assignment: a, question, backTo }: AssignmentViewProps) {
+export function AssignmentView({ assignment: a, question, backTo, onChange }: AssignmentViewProps) {
   const highlight = question === null ? -1 : feedbackIndex(a.feedback, question)
   const listRef = useRef<HTMLOListElement>(null)
 
@@ -65,8 +68,9 @@ export function AssignmentView({ assignment: a, question, backTo }: AssignmentVi
         </div>
         <div>
           <dt>Status</dt>
-          <dd>
+          <dd className="status-cell">
             <StatusPill status={a.status} />
+            {a.checkable && <DoneToggle assignment={a} onChange={onChange} />}
           </dd>
         </div>
         <div>
@@ -84,43 +88,45 @@ export function AssignmentView({ assignment: a, question, backTo }: AssignmentVi
         </section>
       )}
 
-      <section className="section" aria-labelledby="fb-h">
-        <h3 id="fb-h" className="section-h">
-          Feedback
-        </h3>
-        {a.feedback.length === 0 ? (
-          <p className="muted">No feedback yet.</p>
-        ) : (
-          <ol className="feedback" ref={listRef}>
-            {a.feedback.map((f, i) => {
-              const lost = lostPoints(f)
-              return (
-                <li
-                  key={`${f.question}-${i}`}
-                  className={i === highlight ? 'fb on' : 'fb'}
-                  aria-current={i === highlight || undefined}
-                >
-                  <div className="fb-h">
-                    <b>{f.question}</b>
-                    <span className="num">
-                      {formatScore(f.score, f.max_score) || '—'}
-                      {lost !== null && <span className="lost"> −{formatNumber(lost)}</span>}
-                    </span>
-                  </div>
-                  {f.rubric_items.length > 0 && (
-                    <ul className="rubric">
-                      {f.rubric_items.map((item, j) => (
-                        <li key={j}>{item}</li>
-                      ))}
-                    </ul>
-                  )}
-                  {f.comment && <Markdown text={f.comment} className="fb-comment" />}
-                </li>
-              )
-            })}
-          </ol>
-        )}
-      </section>
+      {!a.checkable && (
+        <section className="section" aria-labelledby="fb-h">
+          <h3 id="fb-h" className="section-h">
+            Feedback
+          </h3>
+          {a.feedback.length === 0 ? (
+            <p className="muted">No feedback yet.</p>
+          ) : (
+            <ol className="feedback" ref={listRef}>
+              {a.feedback.map((f, i) => {
+                const lost = lostPoints(f)
+                return (
+                  <li
+                    key={`${f.question}-${i}`}
+                    className={i === highlight ? 'fb on' : 'fb'}
+                    aria-current={i === highlight || undefined}
+                  >
+                    <div className="fb-h">
+                      <b>{f.question}</b>
+                      <span className="num">
+                        {formatScore(f.score, f.max_score) || '—'}
+                        {lost !== null && <span className="lost"> −{formatNumber(lost)}</span>}
+                      </span>
+                    </div>
+                    {f.rubric_items.length > 0 && (
+                      <ul className="rubric">
+                        {f.rubric_items.map((item, j) => (
+                          <li key={j}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {f.comment && <Markdown text={f.comment} className="fb-comment" />}
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </section>
+      )}
     </article>
   )
 }

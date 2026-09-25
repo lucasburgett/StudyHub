@@ -117,6 +117,11 @@ export function saveSettings(values: Record<string, string | null>): Promise<Set
   return sendJson('PUT', '/api/settings', { values })
 }
 
+/** Ticks class-page homework off, or back on. */
+export function setDone(assignmentId: number, done: boolean): Promise<AssignmentSummary> {
+  return sendJson('PUT', `/api/assignments/${assignmentId}/done`, { done })
+}
+
 /** Tries a source's login (or the Claude key, or semantic search) with the saved settings. */
 export function checkConnection(target: string): Promise<CheckResult> {
   return sendJson('POST', `/api/settings/check/${encodeURIComponent(target)}`, {})

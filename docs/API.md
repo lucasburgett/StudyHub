@@ -48,9 +48,11 @@ interface AssignmentSummary {
   due_at: string | null;
   points: number | null;        // max points
   score: number | null;         // your score, when graded
-  status: "upcoming" | "submitted" | "graded" | "missing" | "unknown";
+  status: "upcoming" | "submitted" | "graded" | "missing" | "unknown"
+        | "done" | "past";      // done / past: class-page homework (below)
   url: string | null;
   spec_resource_id: number | null; // the "spec" resource with the full description, if any
+  checkable: boolean;           // class-page homework, which you tick off yourself
 }
 
 interface Lecture {
@@ -168,6 +170,17 @@ AssignmentSummary & {
 }
 ```
 
+**Class-page homework.** Some classes post what to do before each class on a Canvas page per class
+("Week 1, Day 3" or "Semaine 1, Jour 3"), under a heading like "Devoirs" or "Before class". Each
+such page with homework becomes an assignment titled "Devoirs · Week 1, Day 3". It is due when
+that class starts, per the course's line in `CLASS_SCHEDULES`; without one it has no due date.
+Its description is the class page. These have `checkable: true` and status `upcoming`, `past` or
+`done`.
+
+`PUT /api/assignments/{id}/done` with `{ "done": boolean }` ticks one off, or back on, and returns
+its `AssignmentSummary`. It returns 400 for any other assignment, since those take their status
+from your submissions.
+
 ## Search
 
 `GET /api/search?q=…&course_id=&source=&limit=20`
@@ -271,7 +284,7 @@ its last four characters.
 {
   env_file: string;            // absolute path of backend/.env
   groups: {
-    id: string;                // a Source, or "claude" | "search" | "general"
+    id: string;                // a Source, or "claude" | "schedules" | "search" | "general"
     title: string;
     intro: string;
     checkable: boolean;        // has a Test connection button

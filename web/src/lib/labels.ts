@@ -70,6 +70,8 @@ export const STATUS_INFO: Record<
   graded: { label: 'Graded', tone: 'ok' },
   missing: { label: 'Missing', tone: 'bad' },
   unknown: { label: 'Unknown', tone: 'muted' },
+  done: { label: 'Done', tone: 'ok' },
+  past: { label: 'Past', tone: 'muted' },
 }
 
 export function lectureTitle(l: { number: number | null; title: string | null }): string {

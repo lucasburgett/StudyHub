@@ -74,6 +74,12 @@ GROUPS: tuple[Group, ...] = (
               "One course per line: its code, “=”, and the page that links the slides (usually the schedule).",
               "CS 231N=https://cs231n.stanford.edu/schedule.html"),
     )),
+    Group("schedules", "Class schedules", (
+        Field("CLASS_SCHEDULES", "Class days", "lines",
+              "For classes that post homework on a page per class (“Week 1, Day 3”): one course per line, "
+              "with the days it meets, the time and its first day of classes. MWF, TTh and Mon/Wed work too.",
+              "FRENLANG 1=Mon-Fri 9:30 from 2026-09-21"),
+    ), checkable=False, intro="Puts dates on homework that a class posts on its own pages."),
     Group("search", "Semantic search", (
         Field("STUDYHUB_EMBEDDINGS", "Mode", "select",
               "Auto uses Voyage when a key is set, else a local model if installed, else keyword search only.",
@@ -199,9 +205,17 @@ def validate(values: dict[str, str | None]) -> dict[str, str]:
         value = raw.strip()
         if f.kind == "lines":
             parts = [p.strip() for p in re.split(r"[;\n]", value) if p.strip()]
-            bad = [p for p in parts if "=" not in p or not p.partition("=")[2].strip().startswith(("http://", "https://"))]
-            if bad:
-                raise SettingsError(f"Each line needs a course code, “=”, and a web address: {bad[0]!r}")
+            if key == "COURSE_SITES":
+                bad = [p for p in parts
+                       if "=" not in p or not p.partition("=")[2].strip().startswith(("http://", "https://"))]
+                if bad:
+                    raise SettingsError(f"Each line needs a course code, “=”, and a web address: {bad[0]!r}")
+            if key == "CLASS_SCHEDULES":
+                from .ingest.class_pages import parse_calendars
+
+                _, errors = parse_calendars("\n".join(parts))
+                if errors:
+                    raise SettingsError(errors[0])
             value = "; ".join(parts)
         elif "\n" in value or "\r" in value:
             raise SettingsError(f"{f.label} must be on one line.")
