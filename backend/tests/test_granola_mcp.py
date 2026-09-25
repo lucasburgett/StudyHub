@@ -157,6 +157,13 @@ def test_sync_this_terms_recordings(conn):
 
     label = citation(conn, f"r{r['id']}@{seconds[2] // 60}:{seconds[2] % 60:02d}")["label"]
     assert "≈" in label  # the chip says the minute is an estimate
+    conn.commit()
+    from fastapi.testclient import TestClient
+
+    from studyhub.api import app
+
+    segments = TestClient(app, base_url="http://127.0.0.1:8000").get(f"/api/resources/{r['id']}").json()["segments"]
+    assert segments[0]["label"] == "≈0:00"  # and so does the transcript viewer
 
     # A week later the recording is settled: it isn't fetched again, and an empty answer
     # (Granola deleted the transcript) never replaces the copy we have.

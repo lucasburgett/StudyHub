@@ -144,7 +144,7 @@ ResourceSummary & {
   markdown: string | null;     // normalized text of the whole item
   summary: string | null;      // AI or source-provided summary (transcripts)
   pages: { page: number; text: string }[] | null;             // PDFs
-  segments: { seconds: number; label: string; text: string }[] | null; // transcripts, label "41:12"
+  segments: { seconds: number; label: string; text: string }[] | null; // transcripts, label "41:12" ("≈41:12" when estimated)
   file_url: string | null;     // "/api/resources/{id}/file" when has_file
 }
 ```
