@@ -395,7 +395,8 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <tr><td><strong>Lecture timeline</strong></td><td><span class="pill ok">Built</span></td><td>Rebuilt after every sync from, in order: the imported schedule, recording dates, dated note pages, and "Lecture N" files. <code>studyhub schedule</code> imports the schedule from the syllabus, the course site or a CSV.</td></tr>
         <tr><td><strong>Search</strong></td><td><span class="pill ok">Built</span></td><td>Keyword search (SQLite FTS5), plus optional semantic search (Voyage, or a local model), with the two result lists merged.</td></tr>
         <tr><td><strong>Chat agent</strong></td><td><span class="pill ok">Working on your Max plan</span></td><td>Eight read-only tools, streamed answers, and citation chips the server checks against what the tools actually returned. Uses <code>claude-opus-5</code>, either on your Claude plan through Claude Code or on an API key (Settings → Claude).</td></tr>
-        <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Not run yet</span></td><td>Claude vision, one page at a time, sending only new or changed pages. Needs an API key for now; schedule import does too.</td></tr>
+        <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Waiting on your notes</span></td><td>Claude vision on your Max plan, a few pages per call, sending only new or changed pages; math comes out as LaTeX. Tested on sample pages. Needs GoodNotes Auto Backup turned on.</td></tr>
+        <tr><td><strong>All assignments</strong></td><td><span class="pill ok">Built</span></td><td>One page with every class's assignments by due date, grouped by week, with Upcoming and Past views and Done boxes for class-page homework.</td></tr>
         <tr><td><strong>French class-page homework</strong></td><td><span class="pill ok">Built</span></td><td>FRENLANG 1's "Week 1, Day 3" pages become assignments due at the start of each class, with a Done box. Chat sees them too.</td></tr>
         <tr><td><strong>Web app</strong></td><td><span class="pill ok">Built</span></td><td>Timeline, viewer (PDF pages, transcript timestamps, graded feedback), chat, search, sync status, dark mode, phone layout.</td></tr>
         <tr><td><strong>Setup, auto-sync, CI</strong></td><td><span class="pill ok">Built</span></td><td><code>make setup</code>. Syncs on its own while running. GitHub Actions runs the tests and build on every push.</td></tr>
@@ -436,7 +437,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
       <li>Lecture recordings: MATH 115, STATS 118 and APPPHYS 293 keep theirs on Panopto, so decide between Panopto captions and recording in Granola.</li>
       <li>The GoodNotes backup folder, and any course that posts slides on its own site.</li>
       <li>Evals built from your real questions, run on your Max plan, then use them to tune search and prompts.</li>
-      <li>Schedule import and handwriting transcription on your Max plan, so nothing needs an API key.</li>
+      <li>GoodNotes: turn on Auto Backup to Google Drive (PDF), then point StudyHub at the folder so your notes join each lecture.</li>
     </ol>
   </div>
 </section>

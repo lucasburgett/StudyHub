@@ -164,12 +164,14 @@ the subscription is a second backend.
 
 ### Still to do
 
-1. **Transcription on the subscription.** Schedule import already runs there, through
+1. ~~Transcription and schedule import on the subscription.~~ Done. Both go through
    `subscription.ask_json`: a JSON-schema `output_format`, with the answer read from
    `ResultMessage.structured_output`. Claude Code answers through its own `StructuredOutput`
    tool, which `ask_json` allows and chat never does.
-   - Transcription: send page images as image blocks in a streaming-input prompt.
-   - Every `query()` starts a CLI process, so batch several pages per call.
+   - Transcription sends up to 4 page PNGs per call as image blocks in a streaming-input
+     prompt, runs up to 4 calls at a time, and gets `{"pages": [{"page", "markdown"}]}` back.
+   - A page Claude skips keeps its text and is retried next time.
+   - A real run did 3 pages in 4.6 s.
 2. **`fallback_model`.** The SDK has it, but what triggers it is undocumented, so it's unused;
    the API path's `fallbacks="default"` has no equivalent here.
 
@@ -304,6 +306,46 @@ Then go down the list of **untested assumptions**, most likely to break first:
 
 For every fix: add a regression test with a small, **sanitized** fixture (no real names,
 emails, grades or tokens), and run `make test`.
+
+### All assignments page (2026-09-24)
+
+`#/assignments` (sidebar: All assignments) lists every class's assignments in one table, from
+`GET /api/assignments`.
+- **Layout:** by due date, grouped by week, with an Upcoming / Past switch and Done boxes for
+  class-page homework.
+- **Narrow screens:** a container query turns rows into cards wherever the page is narrow (a
+  phone, or a laptop with chat open).
+- The home page's Upcoming list now uses the same endpoint instead of one request per course.
+
+### GoodNotes: connected (2026-09-25)
+
+Lucas turned on GoodNotes Auto Backup (Google Drive, PDF) from his iPad. The backup lands in
+`~/Library/CloudStorage/GoogleDrive-lburgett@stanford.edu/My Drive/GoodNotes`, which is
+`GOODNOTES_DIR`.
+- **His library keeps past classes** (`Math/Old/Math 51/…`). With Canvas connected, the
+  GoodNotes sync now attaches notebooks only to courses Canvas lists this term (`find_course`,
+  not `ensure_course`). Past classes are skipped with an INFO log line, never stored, and never
+  sent to Claude. **He asked for exactly this; keep it.** Notebooks with no course code in their
+  path still raise a sync warning.
+- **GoodNotes' text layer garbles math** ("t[2] + +[] = E] []"), so notes need Claude's
+  transcription.
+- **Transcription runs automatically** after each GoodNotes sync (`sync.transcribe_new_pages`),
+  on his Max plan, up to 40 pages a sync. He chose this. It can be turned off in
+  Settings → GoodNotes → Transcribe new pages (`STUDYHUB_AUTO_TRANSCRIBE`).
+- **When this was written, the first backup was still uploading** (old Math 51 first, then a `Cs`
+  folder). Check that this term's notebooks sit in folders whose paths carry the course code
+  ("Math 115", "Stats 118", …); otherwise they show up as the warning above.
+
+### Running in the background (2026-09-24)
+
+StudyHub runs on Lucas's Mac as a launchd login item (`make autostart`, `studyhub/autostart.py`;
+label `local.studyhub.serve`). It serves http://127.0.0.1:8000, syncs on schedule, and logs to
+`data/logs/studyhub.log`.
+- **After pulling or changing backend code,** run `make autostart` again; it restarts the
+  agent.
+- **Before `make serve` or `make dev`,** run `make autostart-off`; they need the same port.
+- **Verified:** chat reaches the Max plan from the background copy (launchd runs in his login
+  session, so Claude Code finds its keychain login), and Canvas synced on its own at startup.
 
 ## After that, in priority order
 
