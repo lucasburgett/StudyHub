@@ -260,6 +260,8 @@ class Toolbox:
         head += f", lecture {res['lecture_number']})" if res["lecture_number"] is not None else ")"
         if res["occurred_at"]:
             head += f" · {self._local(res['occurred_at'])}"
+        if res["kind"] == "transcript" and '"approx_times": true' in (res["meta_json"] or ""):
+            head += " · times are estimates (±a few minutes)"
         parts = [head]
         if res["summary"] and start is None:
             parts.append(f"Summary:\n{res['summary']}")

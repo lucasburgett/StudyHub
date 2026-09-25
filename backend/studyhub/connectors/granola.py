@@ -1,6 +1,7 @@
 """Granola lecture recordings through the public API (https://public-api.granola.ai/v1).
 
-API keys come from Granola → Settings → Connectors → API keys (Business plan). Each
+API keys come from Granola → Settings → Connectors → API keys (Business plan). Without a key,
+the connector uses Granola's MCP server instead (granola_mcp.py, `studyhub granola login`). Each
 class's recordings should live in a Granola folder named after the course code.
 
 StudyHub keeps its own copy of every transcript. Granola can auto-delete transcripts
@@ -18,7 +19,7 @@ import httpx
 
 from ..config import Settings
 from ..ingest.text import transcript_chunks, transcript_markdown, utterances_from_granola
-from ..store import ensure_course, resource_row, upsert_resource
+from ..store import ensure_course, find_course, resource_row, upsert_resource
 from ..util import iso
 from .base import SyncContext
 
@@ -87,19 +88,30 @@ class GranolaConnector:
         self.transport = transport
 
     def check(self, settings: Settings) -> str:
+        if not settings.granola_api_key:  # plans without the public API sign in through Granola's MCP server
+            from . import granola_mcp
+
+            return granola_mcp.check()
         api = GranolaClient(settings.granola_api_key, self.transport)
         folders = list(api.pages("/folders", "folders"))
         names = ", ".join(f["name"] for f in folders) or "none"
         return f"API key works. {len(folders)} folders: {names}."
 
     def sync(self, ctx: SyncContext) -> None:
+        if not ctx.settings.granola_api_key:
+            from . import granola_mcp
+
+            return granola_mcp.sync(ctx)
         api = GranolaClient(ctx.settings.granola_api_key, self.transport)
         folders = list(api.pages("/folders", "folders"))
         matched = 0
+        # With Canvas connected, Canvas decides which classes exist: folders for past classes stay out.
+        canvas = ctx.conn.execute("SELECT 1 FROM courses WHERE canvas_id IS NOT NULL").fetchone()
         for folder in folders:
-            course_id = ensure_course(ctx.conn, folder["name"], granola_folder_id=folder["id"])
+            course_id = find_course(ctx.conn, folder["name"]) if canvas else ensure_course(ctx.conn, folder["name"])
             if course_id is None:
                 continue
+            ctx.conn.execute("UPDATE courses SET granola_folder_id = ? WHERE id = ?", (folder["id"], course_id))
             matched += 1
             ctx.mark(course_id, changed=False)
             for summary in api.pages("/notes", "notes", {"folder_id": folder["id"]}):
@@ -109,7 +121,8 @@ class GranolaConnector:
                     ctx.warn(f"Skipped Granola note “{summary.get('title')}” ({e.response.status_code}).")
             ctx.conn.commit()
         if folders and not matched:
-            ctx.warn("No Granola folder is named after a course code. Put each class's recordings in a folder like “CS 231N”.")
+            ctx.warn("No Granola folder matches a class you're taking. Record each class into a folder named "
+                     "after its course code, like “MATH 115”.")
 
     def _note(self, ctx: SyncContext, api: GranolaClient, summary: dict, course_id: int) -> None:
         existing = resource_row(ctx.conn, self.source, summary["id"])

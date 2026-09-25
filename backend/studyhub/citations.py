@@ -61,7 +61,7 @@ def citation(conn: sqlite3.Connection, locator: str) -> dict | None:
         return _cite(locator, label, assignment_id=loc.assignment_id)
 
     r = conn.execute(
-        "SELECT r.kind, r.title, r.occurred_at, r.lecture_id, l.number FROM resources r"
+        "SELECT r.kind, r.title, r.occurred_at, r.lecture_id, r.meta_json, l.number FROM resources r"
         " LEFT JOIN lectures l ON l.id = r.lecture_id WHERE r.id = ?",
         (loc.resource_id,),
     ).fetchone()
@@ -89,7 +89,8 @@ def citation(conn: sqlite3.Connection, locator: str) -> dict | None:
     if loc.page is not None:
         label = f"{base} · p.{loc.page}"
     elif loc.seconds is not None:
-        label = f"{base} · {clock(loc.seconds)}"
+        approx = "≈" if '"approx_times": true' in (r["meta_json"] or "") else ""  # estimated, not recorded
+        label = f"{base} · {approx}{clock(loc.seconds)}"
     else:
         label = base
     return _cite(locator, label, resource_id=loc.resource_id, page=loc.page, seconds=loc.seconds)

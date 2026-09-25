@@ -1,6 +1,7 @@
 # Local data: the database, downloaded course files, secrets
 data/
 backend/.env
+backend/.granola-auth.json
 
 # Python
 backend/.venv/

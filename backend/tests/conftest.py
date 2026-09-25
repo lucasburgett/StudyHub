@@ -7,6 +7,7 @@ import pytest
 
 from studyhub import config
 from studyhub.agent import subscription
+from studyhub.connectors import granola_mcp
 from studyhub.db import connect, init_db
 
 SOURCE_VARS = ("CANVAS_BASE_URL", "CANVAS_TOKEN", "GRADESCOPE_EMAIL", "GRADESCOPE_PASSWORD", "GOODNOTES_DIR",
@@ -23,6 +24,7 @@ def isolated_settings(tmp_path, monkeypatch) -> Iterator[None]:
     monkeypatch.setenv("STUDYHUB_EMBEDDINGS", "off")  # never download a model in tests
     # Never ask the real Claude Code whether it's logged in; tests that need a login patch this.
     monkeypatch.setattr(subscription, "claude_login", lambda max_age=60.0: None)
+    monkeypatch.setattr(granola_mcp, "AUTH_PATH", tmp_path / "granola-auth.json")  # never the real sign-in
     monkeypatch.setattr(config.Settings, "model_config", {**config.Settings.model_config, "env_file": None})
     config.get_settings.cache_clear()
     yield

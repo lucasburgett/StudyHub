@@ -69,8 +69,9 @@ GROUPS: tuple[Group, ...] = (
     )),
     Group("granola", "Granola", (
         Field("GRANOLA_API_KEY", "API key", "secret",
-              "Granola → Settings → Connectors → API keys (needs a Business plan). Record each class into a folder "
-              "named after its course code."),
+              "Granola → Settings → Connectors → API keys (needs a Business plan). No API keys on your plan? Leave "
+              "this empty and run “studyhub granola login” in a terminal to sign in instead. Record each class "
+              "into a folder named after its course code."),
     )),
     Group("web", "Course websites", (
         Field("COURSE_SITES", "Sites", "lines",

@@ -84,7 +84,7 @@ class Settings(BaseSettings):
             "canvas": bool(self.canvas_token),
             "gradescope": bool(self.gradescope_email and self.gradescope_password),
             "goodnotes": bool(self.goodnotes_dir),
-            "granola": bool(self.granola_api_key),
+            "granola": bool(self.granola_api_key) or _granola_signed_in(),
             "web": bool(self.sites),
         }[source]
 
@@ -118,6 +118,12 @@ class Settings(BaseSettings):
     @property
     def agent_ready(self) -> bool:
         return self.agent_backend is not None
+
+
+def _granola_signed_in() -> bool:
+    from .connectors.granola_mcp import signed_in
+
+    return signed_in()
 
 
 SOURCES = ("canvas", "gradescope", "goodnotes", "granola", "web")

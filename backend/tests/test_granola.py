@@ -92,3 +92,31 @@ def test_granola_keeps_transcript_deleted_upstream(conn, monkeypatch):
     fake.updated = "2026-10-30T00:00:00Z"
     _sync(conn, fake)
     assert conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0] == before
+
+
+def test_past_classes_folders_stay_out_once_canvas_lists_this_terms(conn, monkeypatch):
+    """Granola keeps last spring's "CS 231N" folder; only this term's classes belong in StudyHub."""
+    from studyhub.store import ensure_course
+
+    monkeypatch.setattr("studyhub.connectors.granola.time.sleep", lambda s: None)
+    math115 = ensure_course(conn, "F26-MATH-115-01")
+    conn.execute("UPDATE courses SET canvas_id = 1 WHERE id = ?", (math115,))
+    asked = []
+
+    class Fake(FakeGranola):
+        def __call__(self, request):
+            path, q = request.url.path.removeprefix("/v1"), request.url.params
+            if path == "/folders":
+                return httpx.Response(200, json={"folders": [
+                    {"id": "fol_1", "object": "folder", "name": "CS 231N", "parent_folder_id": None},
+                    {"id": "fol_3", "object": "folder", "name": "Math 115", "parent_folder_id": None},
+                ], "hasMore": False, "cursor": None})
+            if path == "/notes":
+                asked.append(q["folder_id"])
+                return httpx.Response(200, json={"notes": [], "hasMore": False, "cursor": None})
+            return super().__call__(request)
+
+    ctx = _sync(conn, Fake())
+    assert asked == ["fol_3"]  # last spring's CS 231N folder isn't even read
+    assert [tuple(r) for r in conn.execute("SELECT code, granola_folder_id FROM courses")] == [("MATH 115", "fol_3")]
+    assert ctx.warnings == []

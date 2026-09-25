@@ -82,6 +82,42 @@ def cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_granola(args: argparse.Namespace) -> int:
+    """Sign StudyHub in to Granola's MCP server: for Granola plans without the public API."""
+    import webbrowser
+
+    import httpx
+
+    from .connectors import granola_mcp
+
+    if args.action == "logout":
+        granola_mcp.logout()
+        print("Signed out of Granola.")
+        return 0
+    if args.action == "status":
+        if not granola_mcp.signed_in():
+            print("Not signed in. Run `studyhub granola login`.")
+            return 1
+        try:
+            print(granola_mcp.check())
+        except RuntimeError as e:
+            print(e)
+            return 1
+        return 0
+    with httpx.Client(timeout=30) as http:
+        try:
+            login = granola_mcp.start_login(http)
+            print(f"Open {login.verification_uri_complete}\nand approve StudyHub (code {login.user_code}). "
+                  "Waiting…", flush=True)
+            webbrowser.open(login.verification_uri_complete)
+            granola_mcp.finish_login(login, http)
+        except RuntimeError as e:
+            print(e)
+            return 1
+    print("Signed in to Granola. Syncing your recordings…", flush=True)
+    return cmd_sync(argparse.Namespace(sources=["granola"]))
+
+
 def cmd_autostart(args: argparse.Namespace) -> int:
     from . import autostart
 
@@ -245,7 +281,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     # httpx logs every URL, and Canvas file downloads carry signed tokens in theirs.
-    for name in ("claude_agent_sdk", "httpx"):
+    for name in ("claude_agent_sdk", "httpx", "httpx2", "mcp"):
         logging.getLogger(name).setLevel(logging.WARNING)
     parser = argparse.ArgumentParser(prog="studyhub", description="Your classes in one place.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -264,6 +300,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--reload", action="store_true")
     p.add_argument("--no-access-log", action="store_true", help="don't log every request")
     p.set_defaults(fn=cmd_serve)
+
+    p = sub.add_parser("granola", help="sign in to Granola without an API key (login | logout | status)")
+    p.add_argument("action", choices=("login", "logout", "status"))
+    p.set_defaults(fn=cmd_granola)
 
     p = sub.add_parser("autostart", help="keep StudyHub running in the background on macOS (on | off | status)")
     p.add_argument("action", choices=("on", "off", "status"))
