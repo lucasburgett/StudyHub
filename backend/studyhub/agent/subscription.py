@@ -342,8 +342,23 @@ class _Run:
         self.emit("text", {"delta": delta})
 
 
-def ask_json(prompt: str, schema: dict, *, effort: str = "low", query: Callable | None = None) -> Any:
-    """One question answered as JSON matching `schema`, with no tools (schedule import)."""
+def _with_images(prompt: str, images: list[bytes]):
+    """A one-message streamed prompt: the PNG images, then the text."""
+    import base64
+
+    async def messages():
+        content = [{"type": "image", "source": {"type": "base64", "media_type": "image/png",
+                                                "data": base64.standard_b64encode(png).decode()}}
+                   for png in images]
+        yield {"type": "user", "message": {"role": "user", "content": [*content, {"type": "text", "text": prompt}]},
+               "parent_tool_use_id": None}
+    return messages()
+
+
+def ask_json(prompt: str, schema: dict, *, images: list[bytes] = (), effort: str = "low",
+             query: Callable | None = None) -> Any:
+    """One question answered as JSON matching `schema`, with no tools: schedule import, and page
+    transcription (with `images`, sent as PNGs ahead of the question)."""
     if query is None:
         from claude_agent_sdk import query
 
@@ -353,7 +368,7 @@ def ask_json(prompt: str, schema: dict, *, effort: str = "low", query: Callable 
     options.output_format = {"type": "json_schema", "schema": schema}
     options.include_partial_messages = False
     run = _Run(None, {}, also_allowed=frozenset({"StructuredOutput"}))
-    run.drive(query, prompt, options)
+    run.drive(query, _with_images(prompt, list(images)) if images else prompt, options)
     if run.error:
         raise RuntimeError(run.error)
     if run.structured is None:

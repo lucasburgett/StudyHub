@@ -45,8 +45,8 @@ GROUPS: tuple[Group, ...] = (
               "Auto picks the key when one is set.",
               options=("auto", "subscription", "api")),
         Field("ANTHROPIC_API_KEY", "API key", "secret",
-              "From console.anthropic.com → API keys. Schedule import and handwriting transcription need it; "
-              "chat doesn't if you use your subscription."),
+              "From console.anthropic.com → API keys. Not needed if you use your Claude subscription: chat, "
+              "schedule import and handwriting transcription all run on it."),
     ), intro="Answers your questions and reads your handwriting."),
     Group("canvas", "Canvas", (
         Field("CANVAS_BASE_URL", "Canvas address", placeholder="https://canvas.stanford.edu"),
@@ -63,6 +63,9 @@ GROUPS: tuple[Group, ...] = (
               "The folder GoodNotes Auto Backup writes PDFs into. Keep one GoodNotes folder per class, named "
               "after the course code.",
               "~/Library/CloudStorage/GoogleDrive-you@stanford.edu/My Drive/GoodNotes"),
+        Field("STUDYHUB_AUTO_TRANSCRIBE", "Transcribe new pages", "bool",
+              "After each sync, Claude transcribes new or edited pages of this term's notebooks into text and "
+              "LaTeX (up to 40 pages a sync), so chat and search can read them. GoodNotes' own text garbles math."),
     )),
     Group("granola", "Granola", (
         Field("GRANOLA_API_KEY", "API key", "secret",

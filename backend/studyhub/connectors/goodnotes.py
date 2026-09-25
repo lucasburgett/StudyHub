@@ -13,9 +13,9 @@ from pathlib import Path
 
 from ..config import Settings
 from ..ingest.text import pdf_chunks, pdf_markdown, read_pdf
-from ..store import ensure_course, resource_row, save_file, upsert_resource
+from ..store import ensure_course, find_course, resource_row, save_file, upsert_resource
 from ..util import course_codes, iso
-from .base import SyncContext
+from .base import SyncContext, log
 
 
 def _root(settings: Settings) -> Path:
@@ -38,11 +38,19 @@ class GoodNotesConnector:
         root = _root(ctx.settings)
         seen: set[str] = set()
         unmatched: list[str] = []
+        other_classes: set[str] = set()
+        # With Canvas connected, Canvas decides which classes exist: notebooks for past classes
+        # (a library's "Old/Math 51/…") stay out instead of turning into courses.
+        canvas = ctx.conn.execute("SELECT 1 FROM courses WHERE canvas_id IS NOT NULL").fetchone()
         for path in sorted(root.rglob("*.pdf")):
             rel = path.relative_to(root).as_posix()
-            course_id = ensure_course(ctx.conn, rel)
+            course_id = find_course(ctx.conn, rel) if canvas else ensure_course(ctx.conn, rel)
             if course_id is None:
-                unmatched.append(rel)
+                codes = course_codes(rel)
+                if codes:
+                    other_classes.add(codes[0][0])
+                else:
+                    unmatched.append(rel)
                 continue
             seen.add(rel)
             stat = path.stat()
@@ -73,6 +81,9 @@ class GoodNotesConnector:
             if row["external_id"] not in seen:
                 ctx.conn.execute("DELETE FROM resources WHERE id = ?", (row["id"],))
                 ctx.mark(row["course_id"])
+        if other_classes:
+            log.info("GoodNotes: skipped notebooks for classes not on Canvas this term: %s",
+                     ", ".join(sorted(other_classes)))
         if unmatched:
             shown = ", ".join(unmatched[:3]) + ("…" if len(unmatched) > 3 else "")
             ctx.warn(f"{len(unmatched)} notebooks aren't in a folder named after a course code: {shown}")

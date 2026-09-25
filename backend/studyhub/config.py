@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     studyhub_timezone: str = "America/Los_Angeles"
     studyhub_data_dir: str = ""
     studyhub_auto_sync: bool = True
+    # After a GoodNotes sync, transcribe new note pages with Claude (on the Claude subscription or key).
+    studyhub_auto_transcribe: bool = True
     # Extra hostnames the server answers to, comma-separated (only needed if you host it somewhere).
     studyhub_allowed_hosts: str = ""
 

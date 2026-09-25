@@ -138,11 +138,15 @@ def cmd_ask(args: argparse.Namespace) -> int:
 def cmd_transcribe(args: argparse.Namespace) -> int:
     from .ingest.handwriting import transcribe_notes
 
-    if not get_settings().api_key_set:
-        print("Transcription needs ANTHROPIC_API_KEY in backend/.env; it doesn't run on a Claude subscription yet.")
+    if not args.dry_run and not get_settings().agent_ready:
+        print(NO_CLAUDE)
         return 1
     with session() as conn:
-        done = transcribe_notes(conn, course=args.course, limit=args.limit, dry_run=args.dry_run)
+        try:
+            done = transcribe_notes(conn, course=args.course, limit=args.limit, dry_run=args.dry_run)
+        except RuntimeError as e:
+            print(e)
+            return 1
     print(f"{'Would transcribe' if args.dry_run else 'Transcribed'} {done} pages.")
     return 0
 

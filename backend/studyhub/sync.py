@@ -57,6 +57,24 @@ def rebuild_course(conn: sqlite3.Connection, course_id: int) -> None:
     conn.commit()
 
 
+AUTO_TRANSCRIBE_PAGES = 40  # per sync, so a large first backup spreads over several syncs
+
+
+def transcribe_new_pages(conn: sqlite3.Connection, settings: Settings, warnings: list[str]) -> int:
+    """GoodNotes' own text layer garbles math, so new note pages get Claude's transcription.
+    Only notebooks of current classes are stored at all, so only those are ever sent."""
+    if not settings.studyhub_auto_transcribe or not settings.agent_ready:
+        return 0
+    from .ingest.handwriting import transcribe_notes
+
+    try:
+        return transcribe_notes(conn, limit=AUTO_TRANSCRIBE_PAGES)
+    except Exception as e:  # e.g. the plan's usage limit: the pages wait for the next sync
+        log.warning("transcription failed: %s", e)
+        warnings.append(f"Couldn't transcribe new note pages ({e}). They'll be retried at the next sync.")
+        return 0
+
+
 def index_new_chunks(conn: sqlite3.Connection, settings: Settings, warnings: list[str] | None = None) -> int:
     """Embed chunks that changed, for semantic search. A failure only costs semantic results."""
     from .embeddings import get_embedder, index_embeddings
@@ -112,6 +130,8 @@ def run_source(source: str, settings: Settings | None = None) -> dict:
             homework_warnings = rebuild_class_homework(conn)
             if source == "canvas":
                 ctx.warnings += homework_warnings
+            if source == "goodnotes" and status == "ok":
+                transcribe_new_pages(conn, settings, ctx.warnings)
             index_new_chunks(conn, settings, ctx.warnings)
             conn.execute(
                 "UPDATE sync_runs SET finished_at = ?, status = ?, items_changed = ?, warnings_json = ?, error = ?"
