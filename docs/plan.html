@@ -353,7 +353,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <div class="panel">
     <span class="eyebrow">Where things stand (checked today)</span>
     <ul class="status-list">
-      <li><span class="who"><span class="dot granola"></span>Granola</span><span class="what">Connected as lburgett@stanford.edu. One folder, CS 231N, with no lectures recorded yet.</span></li>
+      <li><span class="who"><span class="dot granola"></span>Granola</span><span class="what">Connected. MATH 115's lecture 2 recording is synced and linked to its slides.</span></li>
       <li><span class="who"><span class="dot goodnotes"></span>GoodNotes</span><span class="what">No backups in your Google Drive yet.</span></li>
       <li><span class="who"><span class="dot canvas"></span>Canvas</span><span class="what">Connected. Four courses synced: APPPHYS 293, FRENLANG 1, MATH 115, STATS 118.</span></li>
       <li><span class="who"><span class="dot gradescope"></span>Gradescope</span><span class="what">Connected. MATH 115 and STATS 118 are linked; no homework posted yet.</span></li>
@@ -390,7 +390,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <tr><td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td><td><span class="pill ok">Syncing your 4 courses</span></td><td>REST API with a personal access token: courses, syllabus, modules, files and slides, pages, assignments, announcements. Lectures take their number, date and topic from the slides' title page.</td></tr>
         <tr><td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td><td><span class="pill ok">Connected</span></td><td>Scores and due dates through <code>gradescopeapi</code>, plus per-question scores, rubric items and grader comments, checked on 12 of your past graded submissions. MATH 115 and STATS 118 have nothing posted yet.</td></tr>
         <tr><td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td><td><span class="pill warn">Untested on real data</span></td><td>Reads Auto Backup PDFs from a folder. A notes page joins a lecture by the date written at its top.</td></tr>
-        <tr><td><span class="src-name"><span class="dot granola"></span>Granola</span></td><td><span class="pill warn">Untested on real data</span></td><td>Public API, which needs a Business plan. Keeps its own copy of every transcript.</td></tr>
+        <tr><td><span class="src-name"><span class="dot granola"></span>Granola</span></td><td><span class="pill ok">Connected</span></td><td>Your plan has no API, so StudyHub signs in to Granola like Claude does (one approval in the browser) and syncs each class folder's recordings, with Granola's summary. Minutes in citations are estimates, marked “≈”. Keeps its own copy of every transcript.</td></tr>
         <tr><td><strong>Course websites</strong></td><td><span class="pill ok">Built, added</span></td><td>Added because CS 231N posts slides on its own site. Downloads the linked PDFs and public Google Slides, and dates lectures from the schedule table.</td></tr>
         <tr><td><strong>Lecture timeline</strong></td><td><span class="pill ok">Built</span></td><td>Rebuilt after every sync from, in order: the imported schedule, recording dates, dated note pages, and "Lecture N" files. <code>studyhub schedule</code> imports the schedule from the syllabus, the course site or a CSV.</td></tr>
         <tr><td><strong>Search</strong></td><td><span class="pill ok">Built</span></td><td>Keyword search (SQLite FTS5), plus optional semantic search (Voyage, or a local model), with the two result lists merged.</td></tr>
@@ -423,7 +423,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <div class="panel open">
       <h3>Not verified yet</h3>
       <ul>
-        <li>GoodNotes and Granola against your real accounts</li>
+        <li>GoodNotes on this term's notebooks (the backup was still uploading older classes)</li>
         <li>The API-key path against the real API (chat uses your Max plan instead)</li>
         <li>Gradescope's submission page format, and Granola's paged-transcript endpoint</li>
         <li>How well handwriting gets transcribed, and embeddings from a real model</li>
@@ -434,7 +434,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <div class="stack">
     <h3>Next, in order</h3>
     <ol class="next">
-      <li>Lecture recordings: MATH 115, STATS 118 and APPPHYS 293 keep theirs on Panopto, so decide between Panopto captions and recording in Granola.</li>
+      <li>Record each class in Granola into a folder named after it (Math 115 works; add Stats 118, French 1, APPPHYS 293).</li>
       <li>The GoodNotes backup folder, and any course that posts slides on its own site.</li>
       <li>Evals built from your real questions, run on your Max plan, then use them to tune search and prompts.</li>
       <li>GoodNotes: turn on Auto Backup to Google Drive (PDF), then point StudyHub at the folder so your notes join each lecture.</li>
@@ -483,7 +483,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
           <td>API key (<code>grn_…</code>) or OAuth</td>
           <td>Lecture notes, AI summary, full transcript, folder</td>
           <td>On the free Basic plan, MCP only sees the last 30 days and can't pull raw transcripts. StudyHub has to keep its own copy either way.</td>
-          <td><span class="pill ok">Connected</span> <span class="pill warn">0 lectures</span></td>
+          <td><span class="pill ok">Connected</span> <span class="pill ok">Math 115 syncing</span></td>
         </tr>
         <tr>
           <td><span class="src-name">Course websites</span></td>

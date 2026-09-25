@@ -277,7 +277,8 @@ Then go down the list of **untested assumptions**, most likely to break first:
    (Task 1) doesn't exercise this code. If anything 400s, fix it here. Load the `claude-api`
    skill before touching this code; don't rely on memory.
 3. **Gradescope.** Done (see above).
-4. **Granola.** The public API needs a Business plan; ask Lucas which plan he has.
+4. **Granola.** Connected through the MCP server (see above); his plan has no API. If he ever gets a
+   key, setting `GRANOLA_API_KEY` switches to the API and exact timestamps.
    - The paged transcript endpoint `/v1/notes/{id}/transcript` isn't in the docs we could
      fetch. `GranolaClient.transcript` (`connectors/granola.py:70`) accepts
      `transcript` / `items` / `data` keys. Confirm against a long recording.
@@ -335,6 +336,29 @@ Lucas turned on GoodNotes Auto Backup (Google Drive, PDF) from his iPad. The bac
 - **When this was written, the first backup was still uploading** (old Math 51 first, then a `Cs`
   folder). Check that this term's notebooks sit in folders whose paths carry the course code
   ("Math 115", "Stats 118", …); otherwise they show up as the warning above.
+
+### Granola: connected through its MCP server (2026-09-25)
+
+Lucas's Granola plan has no public API (no "API keys" in Settings), so StudyHub signs in to
+Granola's MCP server itself (`connectors/granola_mcp.py`). The connector uses it whenever
+`GRANOLA_API_KEY` is empty.
+- **Sign-in:** OAuth device flow. `studyhub granola login` registers StudyHub with Granola's
+  auth server (dynamic registration needs a placeholder `redirect_uris`), asks for a device
+  code with `scope=openid offline_access` and `resource=https://mcp.granola.ai/mcp`, then polls
+  `/token`. Tokens and the refresh token live in `backend/.granola-auth.json` (mode 600,
+  gitignored), and refresh on their own. `studyhub granola status|logout`.
+- **Reading:** `list_meeting_folders` (JSON), `list_meetings` with `last_30_days` (XML-ish
+  `<meeting>` tags), `get_meetings` for the AI summary, and `get_meeting_transcript` (a JSON
+  object after a line of preamble). A meeting is fetched once, plus again while it's under
+  2 days old, in case Granola is still processing it.
+- **Times are estimated.** MCP transcripts have no per-line timestamps, so lines are timed at
+  15 characters a second from the start. Resources carry `meta.approx_times`; citation labels
+  show "≈", and the read tool tells the model the times are estimates.
+- **Same rule as GoodNotes:** with Canvas connected, only folders for this term's classes are
+  read, so his leftover spring "CS 231N" folder is ignored.
+- **Verified:** his MATH 115 lecture 2 (58 min, AI summary) landed on Lecture 2 · The Real
+  Numbers, next to the slides. Chat answered a question about it, citing the recording and
+  the slides.
 
 ### Running in the background (2026-09-24)
 
