@@ -356,7 +356,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
       <li><span class="who"><span class="dot granola"></span>Granola</span><span class="what">Connected as lburgett@stanford.edu. One folder, CS 231N, with no lectures recorded yet.</span></li>
       <li><span class="who"><span class="dot goodnotes"></span>GoodNotes</span><span class="what">No backups in your Google Drive yet.</span></li>
       <li><span class="who"><span class="dot canvas"></span>Canvas</span><span class="what">Connected. Four courses synced: APPPHYS 293, FRENLANG 1, MATH 115, STATS 118.</span></li>
-      <li><span class="who"><span class="dot gradescope"></span>Gradescope</span><span class="what">No official API. Needs a password login.</span></li>
+      <li><span class="who"><span class="dot gradescope"></span>Gradescope</span><span class="what">Connected. MATH 115 and STATS 118 are linked; no homework posted yet.</span></li>
     </ul>
   </div>
   <div class="panel">
@@ -388,7 +388,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
       <thead><tr><th>Area</th><th>Status</th><th>What it does</th></tr></thead>
       <tbody>
         <tr><td><span class="src-name"><span class="dot canvas"></span>Canvas</span></td><td><span class="pill ok">Syncing your 4 courses</span></td><td>REST API with a personal access token: courses, syllabus, modules, files and slides, pages, assignments, announcements. Lectures take their number, date and topic from the slides' title page.</td></tr>
-        <tr><td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td><td><span class="pill warn">Untested on real data</span></td><td>Scores and due dates through <code>gradescopeapi</code>. Reading per-question feedback is a best guess until it sees a real submission page.</td></tr>
+        <tr><td><span class="src-name"><span class="dot gradescope"></span>Gradescope</span></td><td><span class="pill ok">Connected</span></td><td>Scores and due dates through <code>gradescopeapi</code>, plus per-question scores, rubric items and grader comments, checked on 12 of your past graded submissions. MATH 115 and STATS 118 have nothing posted yet.</td></tr>
         <tr><td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td><td><span class="pill warn">Untested on real data</span></td><td>Reads Auto Backup PDFs from a folder. A notes page joins a lecture by the date written at its top.</td></tr>
         <tr><td><span class="src-name"><span class="dot granola"></span>Granola</span></td><td><span class="pill warn">Untested on real data</span></td><td>Public API, which needs a Business plan. Keeps its own copy of every transcript.</td></tr>
         <tr><td><strong>Course websites</strong></td><td><span class="pill ok">Built, added</span></td><td>Added because CS 231N posts slides on its own site. Downloads the linked PDFs and public Google Slides, and dates lectures from the schedule table.</td></tr>
@@ -396,6 +396,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
         <tr><td><strong>Search</strong></td><td><span class="pill ok">Built</span></td><td>Keyword search (SQLite FTS5), plus optional semantic search (Voyage, or a local model), with the two result lists merged.</td></tr>
         <tr><td><strong>Chat agent</strong></td><td><span class="pill ok">Working on your Max plan</span></td><td>Eight read-only tools, streamed answers, and citation chips the server checks against what the tools actually returned. Uses <code>claude-opus-5</code>, either on your Claude plan through Claude Code or on an API key (Settings → Claude).</td></tr>
         <tr><td><strong>Handwriting transcription</strong></td><td><span class="pill warn">Not run yet</span></td><td>Claude vision, one page at a time, sending only new or changed pages. Needs an API key for now; schedule import does too.</td></tr>
+        <tr><td><strong>French class-page homework</strong></td><td><span class="pill ok">Built</span></td><td>FRENLANG 1's "Week 1, Day 3" pages become assignments due at the start of each class, with a Done box. Chat sees them too.</td></tr>
         <tr><td><strong>Web app</strong></td><td><span class="pill ok">Built</span></td><td>Timeline, viewer (PDF pages, transcript timestamps, graded feedback), chat, search, sync status, dark mode, phone layout.</td></tr>
         <tr><td><strong>Setup, auto-sync, CI</strong></td><td><span class="pill ok">Built</span></td><td><code>make setup</code>. Syncs on its own while running. GitHub Actions runs the tests and build on every push.</td></tr>
         <tr><td><strong>Settings page</strong></td><td><span class="pill ok">Built</span></td><td>Fill in each source's login in the app, with a Test connection button for each. It writes <code>backend/.env</code>, and only this computer can reach it.</td></tr>
@@ -421,7 +422,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
     <div class="panel open">
       <h3>Not verified yet</h3>
       <ul>
-        <li>Gradescope, GoodNotes and Granola against your real accounts</li>
+        <li>GoodNotes and Granola against your real accounts</li>
         <li>The API-key path against the real API (chat uses your Max plan instead)</li>
         <li>Gradescope's submission page format, and Granola's paged-transcript endpoint</li>
         <li>How well handwriting gets transcribed, and embeddings from a real model</li>
@@ -432,7 +433,6 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
   <div class="stack">
     <h3>Next, in order</h3>
     <ol class="next">
-      <li>Gradescope: set a Gradescope password, add it in Settings, and sync. MATH 115 and STATS 118 post their homework there.</li>
       <li>Lecture recordings: MATH 115, STATS 118 and APPPHYS 293 keep theirs on Panopto, so decide between Panopto captions and recording in Granola.</li>
       <li>The GoodNotes backup folder, and any course that posts slides on its own site.</li>
       <li>Evals built from your real questions, run on your Max plan, then use them to tune search and prompts.</li>
@@ -466,7 +466,7 @@ ol.next li::marker { font-family: var(--mono); color: var(--ink-3); }
           <td>Email and a Gradescope password. SSO accounts set one with "Forgot password".</td>
           <td>Courses, assignments, due dates, scores, graded submission PDFs with rubric marks</td>
           <td>No official API. It breaks when Gradescope changes its pages. Poll twice a day at most.</td>
-          <td><span class="pill bad">Not set up</span></td>
+          <td><span class="pill ok">Connected</span></td>
         </tr>
         <tr>
           <td><span class="src-name"><span class="dot goodnotes"></span>GoodNotes</span></td>

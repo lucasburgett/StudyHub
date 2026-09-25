@@ -205,6 +205,46 @@ below). Gradescope, GoodNotes, Granola and course sites aren't set up yet.
 - A real `studyhub ask` about his courses answered with correct deadlines and page-cited lecture
   summaries.
 
+### French homework from class pages (built 2026-09-24)
+
+FRENLANG 1 posts most of its homework on a Canvas page per class, not as assignments. Each page
+is titled "Week 1, Day 3" and has a "Students' Tasks to Complete Before Class (Devoirs)" section,
+then "En classe". None of it carries dates, and Canvas has no term or section dates either.
+
+- `ingest/class_pages.py` turns each class page with homework into an assignment,
+  "Devoirs · Week 1, Day 3". It's due when that class starts, according to the course's line in
+  `CLASS_SCHEDULES` (Settings → Class schedules). His line is
+  `FRENLANG 1=Mon-Fri 9:30 from 2026-09-21`; Lucas confirmed the days and time.
+- These assignments are derived, like lectures: rebuilt for every course after every sync, and
+  when Class schedules is saved. A class page without a homework heading triggers a sync
+  warning, in case the instructor changes the template.
+- **Done box:** there's no submission to check, so these get a Done checkbox
+  (`PUT /api/assignments/{id}/done`). Ticks live in `assignment_done`, keyed by
+  (source, external_id), so rebuilds keep them. Statuses: `upcoming`, `past`, `done`.
+- **Verified on his data:** Days 3–5 of week 1 are dated Sep 23–25 at 9:30; Day 2 had no
+  homework. Asked what's due before French tomorrow, chat combined the Day 5 page, the journal's
+  instructions and the announcements.
+- **Not built:** using each page's "En classe" list for a class-by-class French timeline.
+
+### Gradescope: connected (2026-09-24)
+
+- **Login fixed.** gradescopeapi counts any redirect after the login form as success, but a
+  refused login also redirects (back to /login). So a bad login surfaced later as "account page:
+  401". It also sent the password in the URL.
+  - `gradescope._login` now posts the form body, treats landing on /login as a refusal, and
+    reports Gradescope's own message. That message is how we learned his Stanford account had
+    no password yet; he then set one.
+  - Each attempt on a password-less account emails him a reset link, so don't retry blindly.
+- **Feedback fixed.** Without `Accept: text/html`, the submission URL returns the scan's JSON
+  (pages, PDF) instead of the viewer page, so `fetch_feedback` always came back empty.
+  - With the header, the `AssignmentSubmissionViewer` props match `parse_submission_props`.
+  - Real data also showed two more fixes: `QuestionGroup` headings are skipped, and comments
+    come from `evaluations[].comments` and page `annotations[].content`.
+  - Checked on 12 of his past graded submissions (132 questions): all scored, 131 with rubric
+    items, 20 with comments. The sanitized fixture is in `tests/test_gradescope.py`.
+- MATH 115 and STATS 118 are linked, but have no Gradescope assignments posted yet (week 1).
+  They sync automatically twice a day while `studyhub serve` runs.
+
 1. `make setup` (again, to install `claude-agent-sdk`), `make serve`, then open **Settings** (the sliders icon) and fill in what he has;
    **Test connection** checks each one. It writes `backend/.env`; editing that file by hand works too. Never commit `.env`, and
    never paste secrets into files that are tracked.
@@ -234,12 +274,7 @@ Then go down the list of **untested assumptions**, most likely to break first:
    The live API still hasn't confirmed it, and it needs an API key; the subscription backend
    (Task 1) doesn't exercise this code. If anything 400s, fix it here. Load the `claude-api`
    skill before touching this code; don't rely on memory.
-3. **Gradescope.**
-   - Login with a Gradescope password; Stanford SSO users set one via "Forgot password".
-   - `parse_submission_props` (`connectors/gradescope.py:64`) guesses at the JSON embedded in
-     the submission page (`data-react-props` on `AssignmentSubmissionViewer`). Look at a real
-     graded submission's HTML and fix the parser.
-   - Then add a sanitized fixture test, with names and emails removed.
+3. **Gradescope.** Done (see above).
 4. **Granola.** The public API needs a Business plan; ask Lucas which plan he has.
    - The paged transcript endpoint `/v1/notes/{id}/transcript` isn't in the docs we could
      fetch. `GranolaClient.transcript` (`connectors/granola.py:70`) accepts
@@ -332,6 +367,8 @@ emails, grades or tokens), and run `make test`.
 - **Prompt caching.** Tool definitions (fixed order) and the system prompt (instructions plus
   course map) form the cached prefix. Anything that changes per message (the date, what's on
   screen) goes in the user turn.
+- **Class-page homework is derived.** `rebuild_class_homework` recreates it from the stored pages
+  and `CLASS_SCHEDULES`. The student's ticks live only in `assignment_done`, never in `assignments`.
 - **Deadlines and grades come from tables, not search.**
   - A Gradescope assignment matching a Canvas one hides the Canvas row
     (`sync.merge_assignment_twins`).
