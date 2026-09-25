@@ -32,6 +32,8 @@ log = logging.getLogger("studyhub.api")
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     stop = threading.Event()
+    with sync.session() as conn:
+        sync.mark_interrupted(conn)  # nothing is syncing yet in this process
     if get_settings().studyhub_auto_sync:
         threading.Thread(target=sync.auto_sync_forever, args=(stop,), daemon=True, name="studyhub-auto-sync").start()
     yield
@@ -130,7 +132,8 @@ def status(conn: sqlite3.Connection = Depends(db)) -> dict:
     sources = []
     for source in SOURCES:
         run = conn.execute(
-            "SELECT * FROM sync_runs WHERE source = ? AND status != 'running' ORDER BY id DESC LIMIT 1", (source,)
+            "SELECT * FROM sync_runs WHERE source = ? AND status NOT IN ('running', 'interrupted') ORDER BY id DESC LIMIT 1",
+            (source,)
         ).fetchone()
         sources.append({
             "source": source,
@@ -336,7 +339,8 @@ def resource(resource_id: int, conn: sqlite3.Connection = Depends(db)) -> dict:
     chunks = conn.execute("SELECT page, seconds, text FROM chunks WHERE resource_id = ? ORDER BY seq",
                           (resource_id,)).fetchall()
     pages = [{"page": ch["page"], "text": ch["text"]} for ch in chunks if ch["page"] is not None]
-    segments = [{"seconds": ch["seconds"], "label": clock(ch["seconds"]), "text": ch["text"]}
+    approx = "≈" if loads(r["meta_json"], {}).get("approx_times") else ""  # times estimated, not recorded
+    segments = [{"seconds": ch["seconds"], "label": approx + clock(ch["seconds"]), "text": ch["text"]}
                 for ch in chunks if ch["seconds"] is not None]
     return {
         **resource_summary(r), "course_code": r["course_code"], "markdown": r["markdown"], "summary": r["summary"],

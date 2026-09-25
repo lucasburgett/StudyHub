@@ -95,3 +95,31 @@ def test_due_sources(conn, monkeypatch):
     conn.execute("INSERT INTO sync_runs(source, started_at, status) VALUES ('canvas', ?, 'ok')",
                  (sync.now_iso(),))
     assert sync.due_sources(conn, get_settings()) == ["goodnotes"]
+
+
+def test_restart_and_failed_runs(client, conn, monkeypatch):
+    """A sync cut off by a restart isn't a sync problem, and a failed one is retried soon."""
+    from datetime import datetime, timedelta, timezone
+
+    from studyhub import sync
+    from studyhub.config import get_settings
+
+    monkeypatch.setenv("CANVAS_TOKEN", "x")
+    monkeypatch.setenv("GRADESCOPE_EMAIL", "a@b.c")
+    monkeypatch.setenv("GRADESCOPE_PASSWORD", "pw")
+    get_settings.cache_clear()
+    ago = lambda minutes: (datetime.now(timezone.utc) - timedelta(minutes=minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    conn.execute("DELETE FROM sync_runs")
+    conn.executemany("INSERT INTO sync_runs(source, started_at, finished_at, status, error) VALUES (?, ?, ?, ?, ?)", [
+        ("canvas", ago(40), ago(40), "error", "nodename nor servname provided"),
+        ("canvas", ago(20), None, "running", None),  # the server was restarted mid-sync
+        ("gradescope", ago(10), ago(10), "error", "Gradescope didn't accept the login"),
+    ])
+    conn.commit()
+
+    assert sync.mark_interrupted(conn) == 1
+    status = {s["source"]: s["last_run"] for s in client.get("/api/status").json()["sources"]}
+    assert status["canvas"]["status"] == "error"  # the real failure still shows until a sync succeeds
+    # The interrupted run doesn't count as an attempt, and a failure is retried after 5 minutes,
+    # except Gradescope's: each refused login emails a password reset.
+    assert sync.due_sources(conn, get_settings()) == ["canvas"]

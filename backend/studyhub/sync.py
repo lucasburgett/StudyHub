@@ -160,13 +160,33 @@ INTERVALS = {"canvas": 30 * 60, "gradescope": 12 * 3600, "goodnotes": 10 * 60, "
              "web": 6 * 3600}
 
 
+# After a failure, try again sooner: a laptop's network drops out, and a sync problem shouldn't
+# stay up for half an hour. Not Gradescope: each refused login emails the student a password reset.
+RETRY_AFTER_ERROR = 5 * 60
+NO_QUICK_RETRY = {"gradescope"}
+
+
+def mark_interrupted(conn: sqlite3.Connection) -> int:
+    """Runs a previous server process left "running" (it was stopped mid-sync, e.g. restarted)."""
+    n = conn.execute("UPDATE sync_runs SET status = 'interrupted', finished_at = ? WHERE status = 'running'",
+                     (now_iso(),)).rowcount
+    conn.commit()
+    return n
+
+
 def due_sources(conn: sqlite3.Connection, settings: Settings) -> list[str]:
     now = datetime.now(timezone.utc)
     due = []
     for source in configured_sources(settings):
-        row = conn.execute("SELECT MAX(started_at) FROM sync_runs WHERE source = ?", (source,)).fetchone()
-        last = parse_dt(row[0]) if row and row[0] else None
-        if not is_running(source) and (last is None or (now - last).total_seconds() >= INTERVALS[source]):
+        row = conn.execute(
+            "SELECT started_at, status FROM sync_runs WHERE source = ? AND status != 'interrupted'"
+            " ORDER BY started_at DESC LIMIT 1", (source,)
+        ).fetchone()
+        last = parse_dt(row["started_at"]) if row else None
+        wait = INTERVALS[source]
+        if row and row["status"] == "error" and source not in NO_QUICK_RETRY:
+            wait = min(wait, RETRY_AFTER_ERROR)
+        if not is_running(source) and (last is None or (now - last).total_seconds() >= wait):
             due.append(source)
     return due
 
