@@ -1,39 +1,14 @@
-import { useContext, useEffect, useState } from 'react'
-import { ApiError, endpoints, getJson, isAbort } from '../../api/client'
-import type { AssignmentSummary, CourseSummary } from '../../api/types'
+import { useState } from 'react'
+import { endpoints } from '../../api/client'
+import type { CourseSummary } from '../../api/types'
 import { useApp } from '../../lib/appContext'
 import { formatDateTime, formatDue, parseDate, plural } from '../../lib/format'
 import { href, lastTab } from '../../lib/router'
-import { DataVersion, toApiError } from '../../lib/useApi'
+import { useApi } from '../../lib/useApi'
 import { useNow } from '../../lib/useNow'
 import { EmptyState, ErrorState, Link, Loading, SourceDot, StatusPill } from '../ui'
 
 const UPCOMING_LIMIT = 12
-
-/** Every course's assignments, loaded in parallel. Courses that fail to load are skipped. */
-function useAllAssignments(courseIds: number[]) {
-  const version = useContext(DataVersion)
-  const key = courseIds.join(',')
-  const [state, setState] = useState<{ key: string; items?: AssignmentSummary[]; error?: ApiError }>({ key: '' })
-
-  useEffect(() => {
-    const ctrl = new AbortController()
-    const ids = key ? key.split(',').map(Number) : []
-    Promise.allSettled(ids.map((id) => getJson(endpoints.courseAssignments(id), ctrl.signal))).then((results) => {
-      if (ctrl.signal.aborted) return
-      const loaded = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
-      const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-      if (failed && results.every((r) => r.status === 'rejected')) {
-        if (!isAbort(failed.reason)) setState({ key, error: toApiError(failed.reason) })
-      } else {
-        setState({ key, items: loaded })
-      }
-    })
-    return () => ctrl.abort()
-  }, [key, version])
-
-  return state.key === key ? state : { key, items: undefined, error: undefined }
-}
 
 function CourseCard({ course }: { course: CourseSummary }) {
   const { counts, next_due: next } = course
@@ -64,16 +39,15 @@ function CourseCard({ course }: { course: CourseSummary }) {
   )
 }
 
-function Upcoming({ courses }: { courses: CourseSummary[] }) {
-  const all = useAllAssignments(courses.map((c) => c.id))
+function Upcoming() {
+  const all = useApi(endpoints.assignments())
   const [expanded, setExpanded] = useState(false)
   const now = useNow()
-  const codes = new Map(courses.map((c) => [c.id, c.code]))
 
-  if (all.error) return <ErrorState error={all.error} what="Upcoming assignments" />
-  if (!all.items) return <Loading />
+  if (all.error && !all.data) return <ErrorState error={all.error} what="Upcoming assignments" />
+  if (!all.data) return <Loading />
 
-  const upcoming = all.items
+  const upcoming = all.data
     .filter((a) => a.due_at && parseDate(a.due_at).getTime() >= now && a.status !== 'graded')
     .sort((a, b) => parseDate(a.due_at as string).getTime() - parseDate(b.due_at as string).getTime())
   if (upcoming.length === 0) return <p className="muted">Nothing due. Enjoy it.</p>
@@ -86,7 +60,7 @@ function Upcoming({ courses }: { courses: CourseSummary[] }) {
           <li key={a.id}>
             <Link to={href.assignment(a.id)} className="up-row">
               <span className="date">{formatDateTime(a.due_at as string)}</span>
-              <span className="up-code">{codes.get(a.course_id) ?? '—'}</span>
+              <span className="up-code">{a.course_code}</span>
               <span className="up-title">
                 <SourceDot source={a.source} />
                 {a.title}
@@ -101,6 +75,9 @@ function Upcoming({ courses }: { courses: CourseSummary[] }) {
           {expanded ? 'Show fewer' : `Show all ${upcoming.length}`}
         </button>
       )}
+      <p>
+        <Link to={href.assignments()}>All assignments, including past and undated ones</Link>
+      </p>
     </>
   )
 }
@@ -135,7 +112,7 @@ export function Home() {
         <h2 id="upcoming-h" className="section-h">
           Upcoming across all classes
         </h2>
-        <Upcoming courses={courses.data} />
+        <Upcoming />
       </section>
     </div>
   )

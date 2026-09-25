@@ -36,6 +36,11 @@ export interface AssignmentSummary {
   checkable: boolean
 }
 
+/** From GET /api/assignments, which spans every class. */
+export interface AssignmentWithCourse extends AssignmentSummary {
+  course_code: string
+}
+
 export type LectureGap = 'recording' | 'notes' | 'slides'
 
 export interface LectureResource extends ResourceSummary {

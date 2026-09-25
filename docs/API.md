@@ -154,6 +154,10 @@ Append `#page=N` in an `<iframe>` to open at a page.
 
 ## Assignments
 
+`GET /api/assignments` → `(AssignmentSummary & { course_code: string })[]`: every class's
+assignments in one list (Canvas twins hidden by Gradescope excluded), by due date, undated last.
+The web app's All assignments page (`#/assignments`) and the home page's Upcoming list use it.
+
 `GET /api/assignments/{id}`
 
 ```ts

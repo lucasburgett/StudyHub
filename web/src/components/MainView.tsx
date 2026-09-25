@@ -8,6 +8,7 @@ import { AssignmentsTab } from './course/AssignmentsTab'
 import { CourseFrame } from './course/CourseFrame'
 import { ResourceListTab } from './course/ResourceListTab'
 import { TimelineTab } from './course/TimelineTab'
+import { AllAssignments } from './overview/AllAssignments'
 import { Home } from './overview/Home'
 import { SettingsView } from './settings/SettingsView'
 import { ErrorState, Link, Loading } from './ui'
@@ -17,6 +18,11 @@ import { ResourceViewer } from './viewer/ResourceViewer'
 function HomeRoute() {
   useReportContext(NO_CONTEXT)
   return <Home />
+}
+
+function AllAssignmentsRoute() {
+  useReportContext(NO_CONTEXT)
+  return <AllAssignments />
 }
 
 function SettingsRoute() {
@@ -126,5 +132,7 @@ export function MainView({ route }: { route: Route }) {
       return <AssignmentRoute assignmentId={route.assignmentId} question={route.question} />
     case 'settings':
       return <SettingsRoute />
+    case 'assignments':
+      return <AllAssignmentsRoute />
   }
 }

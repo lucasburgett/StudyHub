@@ -317,6 +317,16 @@ def course_assignments(course_id: int, conn: sqlite3.Connection = Depends(db)) -
     return [assignment_summary(a) for a in rows]
 
 
+@app.get("/api/assignments")
+def all_assignments(conn: sqlite3.Connection = Depends(db)) -> list[dict]:
+    """Every class's assignments in one list, by due date (undated last)."""
+    rows = conn.execute(
+        "SELECT a.*, c.code AS course_code FROM assignments a JOIN courses c ON c.id = a.course_id"
+        " WHERE a.hidden = 0 ORDER BY a.due_at IS NULL, a.due_at, c.code, a.title"
+    )
+    return [{**assignment_summary(a), "course_code": a["course_code"]} for a in rows]
+
+
 # ---------------------------------------------------------------- resources and assignments
 
 @app.get("/api/resources/{resource_id}")

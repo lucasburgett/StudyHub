@@ -6,12 +6,13 @@ import { Link } from '../ui'
 interface SidebarProps {
   activeCourseId: number | null
   homeActive: boolean
+  assignmentsActive: boolean
   open: boolean
   /** Called when a link is chosen, so the mobile drawer can close even if the page doesn't change. */
   onNavigate: () => void
 }
 
-export function Sidebar({ activeCourseId, homeActive, open, onNavigate }: SidebarProps) {
+export function Sidebar({ activeCourseId, homeActive, assignmentsActive, open, onNavigate }: SidebarProps) {
   const { courses } = useApp()
   const list = courses.data ?? []
 
@@ -23,6 +24,13 @@ export function Sidebar({ activeCourseId, homeActive, open, onNavigate }: Sideba
     >
       <Link to={href.home()} className={`it${homeActive ? ' on' : ''}`} aria-current={homeActive ? 'page' : undefined}>
         All classes
+      </Link>
+      <Link
+        to={href.assignments()}
+        className={`it${assignmentsActive ? ' on' : ''}`}
+        aria-current={assignmentsActive ? 'page' : undefined}
+      >
+        All assignments
       </Link>
       <div className="sep" role="separator" />
       {list.map((c) => {

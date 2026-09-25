@@ -5,6 +5,7 @@
 //   #/resource/42?t=2472        viewer at a transcript time (seconds)
 //   #/assignment/7?q=2          assignment detail, optionally highlighting feedback question 2
 //   #/settings                  connect sources and keys
+//   #/assignments               every class's assignments by due date
 import { useMemo, useSyncExternalStore } from 'react'
 import type { Citation, Kind } from '../api/types'
 
@@ -25,6 +26,7 @@ export type Route =
   | { name: 'resource'; resourceId: number; page: number | null; seconds: number | null }
   | { name: 'assignment'; assignmentId: number; question: number | null }
   | { name: 'settings' }
+  | { name: 'assignments' }
 
 function isTab(value: string | undefined): value is Tab {
   return TABS.some((t) => t.id === value)
@@ -49,6 +51,7 @@ function parseHash(hash: string): Route {
   const params = new URLSearchParams(q === -1 ? '' : raw.slice(q + 1))
   const [section, idPart, tabPart] = path.split('/').filter(Boolean)
   if (section === 'settings') return { name: 'settings' }
+  if (section === 'assignments') return { name: 'assignments' }
   const id = toId(idPart)
   if (id !== null) {
     if (section === 'course') return { name: 'course', courseId: id, tab: isTab(tabPart) ? tabPart : 'timeline' }
@@ -63,6 +66,7 @@ function parseHash(hash: string): Route {
 export const href = {
   home: () => '#/',
   settings: () => '#/settings',
+  assignments: () => '#/assignments',
   course: (courseId: number, tab: Tab = 'timeline') => `#/course/${courseId}/${tab}`,
   resource: (resourceId: number, at: { page?: number | null; seconds?: number | null } = {}) => {
     if (at.page != null) return `#/resource/${resourceId}?page=${at.page}`

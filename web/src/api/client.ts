@@ -1,6 +1,7 @@
 import type {
   AssignmentDetail,
   AssignmentSummary,
+  AssignmentWithCourse,
   ChatEvent,
   ChatRequest,
   CourseDetail,
@@ -56,6 +57,7 @@ export const endpoints = {
   timeline: (courseId: number) => endpoint<Timeline>(`/api/courses/${courseId}/timeline`),
   courseResources: (courseId: number, kinds: Kind[]) =>
     endpoint<ResourceSummary[]>(`/api/courses/${courseId}/resources`, { kind: kinds.join(',') }),
+  assignments: () => endpoint<AssignmentWithCourse[]>('/api/assignments'),
   courseAssignments: (courseId: number) => endpoint<AssignmentSummary[]>(`/api/courses/${courseId}/assignments`),
   resource: (id: number) => endpoint<ResourceDetail>(`/api/resources/${id}`),
   assignment: (id: number) => endpoint<AssignmentDetail>(`/api/assignments/${id}`),

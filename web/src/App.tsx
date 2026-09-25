@@ -87,6 +87,7 @@ function Shell({ sync }: { sync: SyncState }) {
             <Sidebar
               activeCourseId={route.name === 'course' ? route.courseId : context.courseId}
               homeActive={route.name === 'home'}
+              assignmentsActive={route.name === 'assignments'}
               open={navOpen}
               onNavigate={closeNav}
             />

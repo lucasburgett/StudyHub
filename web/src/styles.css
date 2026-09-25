@@ -2268,6 +2268,68 @@ tr.clickable:hover td {
   overflow-wrap: anywhere;
 }
 
+.all-assignments .group-row th {
+  padding-top: 18px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: transparent;
+}
+
+.all-assignments td.date,
+.all-assignments td.mono {
+  white-space: nowrap;
+}
+
+.all-assignments tbody:first-of-type .group-row th {
+  padding-top: 10px;
+}
+
+.all-assignments-page {
+  container-type: inline-size;
+}
+
+/* Where the page is narrow (a phone, or a laptop with chat open), each assignment is a small card:
+   its title first, then when, class and status. */
+@container (max-width: 640px) {
+  .all-assignments thead {
+    display: none;
+  }
+
+  .all-assignments,
+  .all-assignments tbody,
+  .all-assignments .group-row,
+  .all-assignments .group-row th {
+    display: block;
+  }
+
+  .all-assignments tr.clickable {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .all-assignments tr.clickable td {
+    padding: 0;
+    border: 0;
+  }
+
+  .all-assignments .title-cell {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  .all-assignments .no-score {
+    display: none;
+  }
+}
+
 .status-cell {
   display: flex;
   flex-wrap: wrap;

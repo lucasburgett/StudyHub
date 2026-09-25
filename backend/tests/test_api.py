@@ -40,6 +40,25 @@ def test_resource_detail_and_file(client):
     assert pdf.headers["content-disposition"].startswith("inline")
 
 
+def test_all_assignments(client, demo):
+    from studyhub.store import ensure_course, upsert_assignment
+
+    # A second class, and a Canvas twin that Gradescope's copy hides.
+    math = ensure_course(demo, "MATH 115")
+    upsert_assignment(demo, course_id=math, source="canvas", external_id="m1", title="Homework 1",
+                      due_at="2026-10-02T06:59:00Z", points=10, score=None, status="upcoming", url=None)
+    upsert_assignment(demo, course_id=math, source="canvas", external_id="m0", title="Reading", due_at=None,
+                      points=None, score=None, status="upcoming", url=None)
+    demo.execute("UPDATE assignments SET hidden = 1 WHERE id = (SELECT MIN(id) FROM assignments)")
+    demo.commit()
+    rows = client.get("/api/assignments").json()
+    visible = demo.execute("SELECT COUNT(*) FROM assignments WHERE hidden = 0").fetchone()[0]
+    assert len(rows) == visible and {r["course_code"] for r in rows} == {"CS 231N", "MATH 115"}
+    dated = [r["due_at"] for r in rows if r["due_at"]]
+    assert dated == sorted(dated) and rows[-1]["due_at"] is None  # by due date, undated last
+    assert {"id", "title", "status", "checkable", "course_id"} <= rows[0].keys()
+
+
 def test_assignment_detail(client):
     assignments = client.get("/api/courses/1/assignments").json()
     quiz = next(a for a in assignments if a["title"] == "Quiz 1")
